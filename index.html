@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Music World</title>
+
+    <style>
+body.player-open {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+body.player-open .container {
+    width: 55%;
+    max-width: 650px;
+    margin-left: 4%;
+    margin-right: auto;
+    text-align: center;
+}
+
+body.player-open .playlist {
+    height: 135px;
+}
+
+body.player-open .emoji {
+    font-size: 42px;
+    margin-bottom: 8px;
+}
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            background:
+                linear-gradient(
+                    rgba(0,0,0,0.35),
+                    rgba(0,0,0,0.55)
+                ),
+                url("background.png");
+
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+
+            font-family: Arial, sans-serif;
+            color: white;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 30px;
+        }
+
+        .container {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+    transition: 0.5s;
+}
+
+.container.player-mode {
+    max-width: 500px;
+    margin-left: 80px;
+    margin-right: auto;
+}
+#backButton {
+    position: fixed;
+    left: 25px;
+    top: 25px;
+
+    padding: 10px 18px;
+    border-radius: 12px;
+
+    border: 1px solid rgba(255,255,255,0.3);
+
+background: rgba(0,0,0,0.35);
+
+color: white;
+
+    cursor: pointer;
+    font-size: 14px;
+
+    backdrop-filter: blur(10px);
+}
+        .logo {
+            font-size: 55px;
+            margin-bottom: 5px;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            margin-top: 10px;
+            margin-bottom: 40px;
+
+            opacity: 0.85;
+        }
+
+        .playlists {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 20px;
+        }
+
+        .playlist {
+            height: 150px;
+
+            border-radius: 25px;
+
+            background:
+                rgba(255,255,255,0.15);
+
+            backdrop-filter: blur(12px);
+
+            border:
+                1px solid rgba(255,255,255,0.25);
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: center;
+            align-items: center;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+
+            box-shadow:
+                0 10px 30px
+                rgba(0,0,0,0.3);
+        }
+
+        .playlist:hover {
+            transform:
+                translateY(-8px)
+                scale(1.02);
+
+            background:
+                rgba(255,255,255,0.25);
+
+            box-shadow:
+                0 20px 40px
+                rgba(0,0,0,0.4);
+        }
+
+        .emoji {
+            font-size: 55px;
+            margin-bottom: 15px;
+        }
+
+        .playlist h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .playlist p {
+            margin-top: 8px;
+            margin-bottom: 0;
+
+            font-size: 13px;
+
+            opacity: 0.75;
+        }
+
+        @media (max-width: 700px) {
+
+            .playlists {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+
+        }
+
+        @media (max-width: 450px) {
+
+            .playlists {
+                grid-template-columns: 1fr;
+            }
+
+        }
+.music-panel {
+    display: none;
+
+    position: fixed;
+    right: 7%;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 360px;
+    padding: 30px;
+
+    text-align: center;
+
+    background: rgba(20, 20, 20, 0.55);
+
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 25px;
+
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+
+    z-index: 100;
+}
+
+.music-icon {
+    font-size: 50px;
+}
+
+.music-panel h2 {
+    margin: 10px 0;
+    font-size: 26px;
+}
+
+.music-panel p {
+    margin: 8px 0 20px;
+    opacity: 0.8;
+}
+
+.music-panel audio {
+    width: 100%;
+}
+
+.music-controls {
+    margin-top: 18px;
+}
+
+.music-controls button {
+    padding: 10px 16px;
+    margin: 0 6px;
+
+    border: none;
+    border-radius: 12px;
+
+    cursor: pointer;
+    font-size: 18px;
+}
+    </style>
+</head>
+
+
+<body>
+
+    <div class="container">
+<button id="backButton" onclick="goHome()">← Categories</button>
+        <div class="logo">
+            🎵
+        </div>
+
+        <h1>
+            My Music World
+        </h1>
+
+        <div class="subtitle">
+            Choose a place, not a song.
+        </div>
+
+
+        <div class="playlist"
+     onclick="choosePlaylist('village')">
+
+    <div class="emoji">
+        🏡
+    </div>
+
+    <h2>
+        Village
+    </h2>
+
+    <p>
+        Peaceful countryside
+    </p>
+
+</div>
+
+
+            <div class="playlist"
+                 onclick="choosePlaylist('town')">
+
+                <div class="emoji">
+                    🏙️
+                </div>
+
+                <h2>
+                    Town
+                </h2>
+
+                <p>
+                    Streets & city life
+                </p>
+
+            </div>
+
+
+            <div class="playlist"
+                 onclick="choosePlaylist('mountain')">
+
+                <div class="emoji">
+                    🏔️
+                </div>
+
+                <h2>
+                    Mountain
+                </h2>
+
+                <p>
+                    Roads above the clouds
+                </p>
+
+            </div>
+
+
+            <div class="playlist"
+                 onclick="choosePlaylist('river')">
+
+                <div class="emoji">
+                    🌊
+                </div>
+
+                <h2>
+                    River
+                </h2>
+
+                <p>
+                    Flow with the water
+                </p>
+
+            </div>
+
+
+            <div class="playlist"
+                 onclick="choosePlaylist('rain')">
+
+                <div class="emoji">
+                    🌧️
+                </div>
+
+                <h2>
+                    Rain
+                </h2>
+
+                <p>
+                    A rainy evening
+                </p>
+
+            </div>
+
+
+            <div class="playlist"
+                 onclick="choosePlaylist('forest')">
+
+                <div class="emoji">
+                    🌲
+                </div>
+
+                <h2>
+                    Forest
+                </h2>
+
+                <p>
+                    Lost in nature
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+<div id="musicPanel" class="music-panel" style="display: none;">
+
+    <div class="music-icon">
+        🎵
+    </div>
+
+    <h2 id="playerTitle">
+        Choose a place
+    </h2>
+
+    <p id="songTitle">
+        Select a playlist to start listening
+    </p>
+
+    <audio id="player" controls></audio>
+
+    <div class="music-controls">
+
+        <button onclick="previousSong()">⏮</button>
+
+        <button onclick="togglePlay()" id="playButton">
+            ▶️
+        </button>
+
+        <button onclick="nextSong()">⏭</button>
+
+    </div>
+
+</div>
+  <script>
+
+let playlistSongs = {
+    
+    village: [
+        "village/song1.mp3",
+        "village/song2.mp3"
+    ],
+
+    town: [
+        "town/song3.mp3"
+    ],
+
+    mountain: [
+        "mountain/song4.mp3"
+    ],
+
+    river: [
+        "river/song5.mp3"
+    ],
+
+    rain: [
+        "rain/song1.mp3"
+    ],
+
+    forest: [
+        "forest/song2.mp3"
+    ]
+};
+let currentPlaylist = [];
+let currentSong = 0;
+async function loadPlaylists() {
+    try {
+        const response = await fetch("/api/playlists");
+
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        playlistSongs = await response.json();
+
+        console.log("Playlists loaded:", playlistSongs);
+
+        return true;
+    } catch (error) {
+        console.error("Playlist loading error:", error);
+
+        playlistSongs = {};
+
+        return false;
+    }
+}
+async function choosePlaylist(place) {
+
+    console.log("Selected playlist:", place);
+
+    // Move layout
+    document.body.classList.add("player-open");
+
+    // Show music panel
+    musicPanel.style.display = "block";
+
+    // Change background
+    document.body.style.background = `
+        linear-gradient(
+            rgba(0,0,0,0.12),
+            rgba(0,0,0,0.20)
+        ),
+        url("${place}.png")
+        center / cover no-repeat fixed
+    `;
+
+    // Update title
+    playerTitle.innerText =
+        place.charAt(0).toUpperCase() + place.slice(1);
+
+    // Load latest playlist data
+    const loaded = await loadPlaylists();
+
+    if (!loaded) {
+        songTitle.innerText = "Could not load songs";
+        return;
+    }
+
+    // Get selected playlist
+    currentPlaylist = playlistSongs[place] || [];
+    currentSong = 0;
+
+    console.log("Playlist songs:", currentPlaylist);
+
+    // No songs
+    if (currentPlaylist.length === 0) {
+        songTitle.innerText = "No songs in this playlist";
+        player.removeAttribute("src");
+        player.load();
+        return;
+    }
+
+    // Load first song
+    loadSong();
+
+    // Try autoplay
+    try {
+        await player.play();
+        playButton.innerText = "⏸️";
+    } catch (error) {
+        console.log("Autoplay blocked:", error);
+        playButton.innerText = "▶️";
+    }
+}
+    
+
+   
+    
+
+
+function loadSong() {
+
+    if (!currentPlaylist || currentPlaylist.length === 0) {
+        return;
+    }
+
+    const song = currentPlaylist[currentSong];
+
+    console.log("Loading song:", song);
+
+    // API already gives the complete URL
+    player.src = song.file;
+
+    player.load();
+
+    // Show actual song name
+    songTitle.innerText = song.name;
+
+    playButton.innerText = "▶️";
+}
+
+
+    
+
+
+
+function togglePlay() {
+
+    if (player.paused) {
+
+        player.play();
+
+        playButton.innerText = "⏸️";
+
+    } else {
+
+        player.pause();
+
+        playButton.innerText = "▶️";
+    }
+}
+
+
+function nextSong() {
+
+    if (currentPlaylist.length === 0) {
+        return;
+    }
+
+
+    currentSong++;
+
+    if (currentSong >= currentPlaylist.length) {
+        currentSong = 0;
+    }
+
+
+    loadSong();
+
+    player.play();
+
+    playButton.innerText = "⏸️";
+}
+
+
+function previousSong() {
+
+    if (currentPlaylist.length === 0) {
+        return;
+    }
+
+
+    currentSong--;
+
+    if (currentSong < 0) {
+        currentSong =
+            currentPlaylist.length - 1;
+    }
+
+
+    loadSong();
+
+    player.play();
+
+    playButton.innerText = "⏸️";
+}
+
+
+// Automatically play next song
+player.addEventListener("ended", () => {
+    nextSong();
+});
+
+
+function goHome() {
+    location.reload();
+}
+
+</script>
+
+</body>
+
+</html>

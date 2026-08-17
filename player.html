@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Music Player</title>
+
+   <style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+
+        color: white;
+        font-family: Arial, sans-serif;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        position: relative;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(3px);
+
+        z-index: -1;
+    }
+
+    .player {
+        width: 450px;
+        padding: 45px 40px;
+
+        background: rgba(20, 20, 20, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+
+        border-radius: 30px;
+
+        backdrop-filter: blur(18px);
+
+        box-shadow:
+            0 25px 60px rgba(0, 0, 0, 0.5);
+
+        text-align: center;
+    }
+
+    .player h1 {
+        font-size: 32px;
+        margin: 0 0 15px;
+    }
+
+    .player h2 {
+        font-size: 22px;
+        margin: 10px 0 25px;
+
+        text-transform: capitalize;
+    }
+
+    audio {
+        width: 100%;
+        margin-top: 15px;
+    }
+</style>
+</head>
+
+<body>
+
+    <div class="player">
+
+        <h1>🎵 My Music Player</h1>
+
+        <h2 id="playlistName">Loading...</h2>
+
+        <audio id="player" controls></audio>
+<div class="controls">
+
+    <button onclick="previousSong()">⏮</button>
+
+    <button onclick="togglePlay()" id="playButton">▶️</button>
+
+    <button onclick="nextSong()">⏭</button>
+
+</div>
+    </div>
+
+
+    <script>
+
+    const params = new URLSearchParams(window.location.search);
+
+    const playlist = params.get("playlist");
+
+
+    const songs = {
+        village: ["song1.mp3", "song2.mp3"],
+        town: ["song3.mp3"],
+        mountain: ["song4.mp3"],
+        river: ["song5.mp3"],
+        rain: ["song1.mp3"],
+        forest: ["song2.mp3"]
+    };
+
+
+    const backgrounds = {
+        village: "village.png",
+        town: "town.png",
+        mountain: "mountain.png",
+        river: "river.png",
+        rain: "rain.png",
+        forest: "forest.png"
+    };
+
+
+    document.getElementById("playlistName").innerText =
+        playlist;
+
+
+    document.body.style.background =
+        `linear-gradient(
+            rgba(0,0,0,0.35),
+            rgba(0,0,0,0.55)
+        ),
+        url("${backgrounds[playlist]}")
+        center / cover no-repeat fixed`;
+
+
+    const playlistSongs = songs[playlist];
+
+    const player =
+        document.getElementById("player");
+
+
+    let currentSong = 0;
+
+
+    player.src =
+        "songs/" + playlistSongs[currentSong];
+function loadSong() {
+
+    if (!currentPlaylist || currentPlaylist.length === 0) {
+        return;
+    }
+
+    const song = currentPlaylist[currentSong];
+
+    console.log("Playing song:", song.file);
+
+    player.src = song.file;
+    player.load();
+
+    songTitle.innerText = song.name;
+}
+
+
+function togglePlay() {
+
+    if (player.paused) {
+
+        player.play();
+
+        document.getElementById("playButton").innerText = "⏸️";
+
+    } else {
+
+        player.pause();
+
+        document.getElementById("playButton").innerText = "▶️";
+
+    }
+}
+
+
+function nextSong() {
+
+    currentSong++;
+
+    if (currentSong >= playlistSongs.length) {
+        currentSong = 0;
+    }
+
+    loadSong();
+    player.play();
+
+    document.getElementById("playButton").innerText = "⏸️";
+}
+
+
+function previousSong() {
+
+    currentSong--;
+
+    if (currentSong < 0) {
+        currentSong = playlistSongs.length - 1;
+    }
+
+    loadSong();
+    player.play();
+
+    document.getElementById("playButton").innerText = "⏸️";
+}
+
+
+player.addEventListener("ended", () => {
+
+    nextSong();
+
+});
+
+    player.load();
+
+</script>
+
+</body>
+</html>
