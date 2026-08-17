@@ -495,9 +495,17 @@ async function choosePlaylist(place) {
     }
 
     // Get selected playlist
-    currentPlaylist = playlistSongs[place] || [];
-    currentSong = 0;
+    currentPlaylist = [...(playlistSongs[place] || [])];
+shufflePlaylist();
+currentSong = 0;
+function shufflePlaylist() {
+    for (let i = currentPlaylist.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
 
+        [currentPlaylist[i], currentPlaylist[randomIndex]] =
+            [currentPlaylist[randomIndex], currentPlaylist[i]];
+    }
+}
     console.log("Playlist songs:", currentPlaylist);
 
     // No songs

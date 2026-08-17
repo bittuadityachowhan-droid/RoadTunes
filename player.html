@@ -94,130 +94,263 @@
     </div>
 
 
-    <script>
+    
 
-    const params = new URLSearchParams(window.location.search);
+   
+<script>
+const params = new URLSearchParams(window.location.search);
+const playlist = params.get("playlist");
 
-    const playlist = params.get("playlist");
+const backgrounds = {
+    village: "village.png",
+    town: "town.png",
+    mountain: "mountain.png",
+    river: "river.png",
+    rain: "rain.png",
+    forest: "forest.png"
+};
 
+const playlistName = document.getElementById("playlistName");
+const player = document.getElementById("player");
+const playButton = document.getElementById("playButton");
 
-    const songs = {
-        village: ["song1.mp3", "song2.mp3"],
-        town: ["song3.mp3"],
-        mountain: ["song4.mp3"],
-        river: ["song5.mp3"],
-        rain: ["song1.mp3"],
-        forest: ["song2.mp3"]
-    };
+playlistName.innerText = playlist || "Music";
 
+document.body.style.background =
+    `linear-gradient(
+        rgba(0,0,0,0.35),
+        rgba(0,0,0,0.55)
+    ),
+    url("${backgrounds[playlist]}") center / cover no-repeat fixed`;
 
-    const backgrounds = {
-        village: "village.png",
-        town: "town.png",
-        mountain: "mountain.png",
-        river: "river.png",
-        rain: "rain.png",
-        forest: "forest.png"
-    };
-
-
-    document.getElementById("playlistName").innerText =
-        playlist;
-
-
-    document.body.style.background =
-        `linear-gradient(
-            rgba(0,0,0,0.35),
-            rgba(0,0,0,0.55)
-        ),
-        url("${backgrounds[playlist]}")
-        center / cover no-repeat fixed`;
+let playlistSongs = [];
+let shuffledSongs = [];
+let currentSong = 0;
 
 
-    const playlistSongs = songs[playlist];
+// -----------------------------
+// CREATE RANDOM PLAYLIST ORDER
+// -----------------------------
+function createShuffle() {
+    shuffledSongs = [...playlistSongs];
 
-    const player =
-        document.getElementById("player");
+    // Fisher-Yates shuffle
+    for (let i = shuffledSongs.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
 
-
-    let currentSong = 0;
-
-
-    player.src =
-        "songs/" + playlistSongs[currentSong];
-function loadSong() {
-
-    if (!currentPlaylist || currentPlaylist.length === 0) {
-        return;
+        [shuffledSongs[i], shuffledSongs[randomIndex]] =
+            [shuffledSongs[randomIndex], shuffledSongs[i]];
     }
 
-    const song = currentPlaylist[currentSong];
+    // Make sure we don't accidentally get the exact
+    // same order as the original playlist
+    if (playlistSongs.length > 2) {
+        let sameOrder = true;
 
-    console.log("Playing song:", song.file);
+        for (let i = 0; i < playlistSongs.length; i++) {
+            if (playlistSongs[i].file !== shuffledSongs[i].file) {
+                sameOrder = false;
+                break;
+            }
+        }
 
-    player.src = song.file;
-    player.load();
+        if (sameOrder) {
+            createShuffle();
+            return;
+        }
+    }
 
-    songTitle.innerText = song.name;
+    currentSong = 0;
+
+    console.log(
+        "Original order:",
+        playlistSongs.map(song => song.name)
+    );
+
+    console.log(
+        "Shuffled order:",
+        shuffledSongs.map(song => song.name)
+    );
 }
 
 
-function togglePlay() {
+// -----------------------------
+// LOAD PLAYLIST
+// -----------------------------
+async function loadPlaylist() {
+    try {
+        const response = await fetch("/api/playlists");
 
+        if (!response.ok) {
+            throw new Error("Failed to fetch playlists");
+        }
+
+        const allPlaylists = await response.json();
+
+        playlistSongs = allPlaylists[playlist] || [];
+
+        if (playlistSongs.length === 0) {
+            console.error("No songs found for:", playlist);
+            return;
+        }
+
+        console.log(
+            playlist,
+            "contains",
+            playlistSongs.length,
+            "songs"
+        );
+
+        createShuffle();
+
+        loadSong();
+
+    } catch (error) {
+        console.error("Playlist loading failed:", error);
+    }
+}
+
+
+// -----------------------------
+// LOAD CURRENT SHUFFLED SONG
+// -----------------------------
+function loadSong() {
+    if (shuffledSongs.length === 0) {
+        return;
+    }
+
+    const song = shuffledSongs[currentSong];
+
+    console.log(
+        "Playing:",
+        song.name
+    );
+
+    console.log(
+        "Position:",
+        currentSong + 1,
+        "/",
+        shuffledSongs.length
+    );
+
+    player.src = song.file;
+    player.load();
+}
+
+
+// -----------------------------
+// PLAY / PAUSE
+// -----------------------------
+function togglePlay() {
     if (player.paused) {
 
-        player.play();
-
-        document.getElementById("playButton").innerText = "⏸️";
+        player.play()
+            .then(() => {
+                playButton.innerText = "Ⅱ";
+            })
+            .catch(error => {
+                console.error("Play failed:", error);
+            });
 
     } else {
 
         player.pause();
-
-        document.getElementById("playButton").innerText = "▶️";
-
+        playButton.innerText = "▶️";
     }
 }
 
 
+// -----------------------------
+// NEXT SHUFFLED SONG
+// -----------------------------
 function nextSong() {
+
+    if (shuffledSongs.length === 0) {
+        return;
+    }
 
     currentSong++;
 
-    if (currentSong >= playlistSongs.length) {
-        currentSong = 0;
+    // When shuffled queue ends,
+    // create a completely new shuffle
+    if (currentSong >= shuffledSongs.length) {
+        createShuffle();
     }
 
     loadSong();
-    player.play();
 
-    document.getElementById("playButton").innerText = "⏸️";
+    player.play()
+        .then(() => {
+            playButton.innerText = "Ⅱ";
+        })
+        .catch(error => {
+            console.error("Next song failed:", error);
+        });
 }
 
 
+// -----------------------------
+// PREVIOUS SONG
+// -----------------------------
 function previousSong() {
+
+    if (shuffledSongs.length === 0) {
+        return;
+    }
 
     currentSong--;
 
     if (currentSong < 0) {
-        currentSong = playlistSongs.length - 1;
+        currentSong = shuffledSongs.length - 1;
     }
 
     loadSong();
-    player.play();
 
-    document.getElementById("playButton").innerText = "⏸️";
+    player.play()
+        .then(() => {
+            playButton.innerText = "Ⅱ";
+        })
+        .catch(error => {
+            console.error("Previous song failed:", error);
+        });
 }
 
 
+// -----------------------------
+// AUTOMATIC NEXT SONG
+// -----------------------------
 player.addEventListener("ended", () => {
 
-    nextSong();
+    if (shuffledSongs.length === 0) {
+        return;
+    }
 
+    currentSong++;
+
+    // New shuffle when the current shuffled list finishes
+    if (currentSong >= shuffledSongs.length) {
+        createShuffle();
+    }
+
+    loadSong();
+
+    player.play()
+        .then(() => {
+            playButton.innerText = "Ⅱ";
+        })
+        .catch(error => {
+            console.error(
+                "Automatic next song failed:",
+                error
+            );
+        });
 });
 
-    player.load();
 
+// -----------------------------
+// START
+// -----------------------------
+loadPlaylist();
 </script>
 
 </body>
