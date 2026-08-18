@@ -1,639 +1,1079 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-   <title>RoadTunes V2</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadTunes V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <style>
-body.player-open {
+<style>
+:root {
+    --accent: #ffbe3b;
+    --accent-2: #ffd77a;
+    --panel: rgba(18, 22, 27, 0.78);
+    --panel-soft: rgba(18, 22, 27, 0.58);
+    --border: rgba(255,255,255,.16);
+    --text: #f6f7f8;
+    --muted: #b9c0c7;
+    --shadow: 0 20px 60px rgba(0,0,0,.45);
+
+    /* Dynamic category mood */
+    --mood: #ffbe3b;
+    --mood-soft: rgba(255, 190, 59, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    font-family: "Inter", Arial, sans-serif;
+    color: var(--text);
+    background:
+        linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.55)),
+        url("background.png") center / cover no-repeat fixed;
+    overflow-x: hidden;
+    transition: background-image .45s ease, color .25s ease;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 20%, rgba(255,255,255,.06), transparent 45%);
+}
+
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
     display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 32px;
 }
 
-body.player-open .container {
-    width: 55%;
-    max-width: 650px;
-    margin-left: 4%;
-    margin-right: auto;
-    text-align: center;
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 28px;
+    font-weight: 700;
 }
 
-body.player-open .playlist {
-    height: 135px;
+.brand-mark {
+    color: var(--accent);
+    font-size: 30px;
 }
 
-body.player-open .emoji {
-    font-size: 42px;
-    margin-bottom: 8px;
-}
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-
-            background:
-                linear-gradient(
-                    rgba(0,0,0,0.35),
-                    rgba(0,0,0,0.55)
-                ),
-                url("background.png");
-
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-
-            font-family: Arial, sans-serif;
-            color: white;
-
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            padding: 30px;
-        }
-
-        .container {
-    width: 100%;
-    max-width: 900px;
-    text-align: center;
-    transition: 0.5s;
+.brand-name {
+    font-family: "Dancing Script", cursive;
+    font-size: 33px;
+    font-weight: 600;
 }
 
-.container.player-mode {
-    max-width: 500px;
-    margin-left: 80px;
-    margin-right: auto;
+.version {
+    padding: 5px 9px;
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 10px;
+    font-size: 13px;
+    background: rgba(0,0,0,.18);
 }
-#backButton {
-    position: fixed;
-    left: 25px;
-    top: 25px;
 
-    padding: 10px 18px;
-    border-radius: 12px;
+.top-actions {
+    display: flex;
+    gap: 10px;
+}
 
-    border: 1px solid rgba(255,255,255,0.3);
-
-background: rgba(0,0,0,0.35);
-
-color: white;
-
-    cursor: pointer;
-    font-size: 14px;
-
+.icon-btn {
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 50%;
+    color: white;
+    background: rgba(10,15,20,.48);
     backdrop-filter: blur(10px);
+    font-size: 19px;
+    cursor: pointer;
 }
-        .logo {
-            font-size: 55px;
-            margin-bottom: 5px;
-        }
 
-        h1 {
-            font-size: 42px;
-            margin: 0;
-        }
+.icon-btn:hover {
+    background: rgba(255,255,255,.14);
+}
 
-        .subtitle {
-            font-size: 18px;
-            margin-top: 10px;
-            margin-bottom: 40px;
-
-            opacity: 0.85;
-        }
-
-        .playlists {
-            display: grid;
-
-            grid-template-columns:
-                repeat(3, 1fr);
-
-            gap: 20px;
-        }
-
-        .playlist {
-            height: 150px;
-
-            border-radius: 25px;
-
-            background:
-                rgba(255,255,255,0.15);
-
-            backdrop-filter: blur(12px);
-
-            border:
-                1px solid rgba(255,255,255,0.25);
-
-            display: flex;
-
-            flex-direction: column;
-
-            justify-content: center;
-            align-items: center;
-
-            cursor: pointer;
-
-            transition: 0.3s;
-
-            box-shadow:
-                0 10px 30px
-                rgba(0,0,0,0.3);
-        }
-
-        .playlist:hover {
-            transform:
-                translateY(-8px)
-                scale(1.02);
-
-            background:
-                rgba(255,255,255,0.25);
-
-            box-shadow:
-                0 20px 40px
-                rgba(0,0,0,0.4);
-        }
-
-        .emoji {
-            font-size: 55px;
-            margin-bottom: 15px;
-        }
-
-        .playlist h2 {
-            margin: 0;
-            font-size: 22px;
-        }
-
-        .playlist p {
-            margin-top: 8px;
-            margin-bottom: 0;
-
-            font-size: 13px;
-
-            opacity: 0.75;
-        }
-
-        @media (max-width: 700px) {
-
-            .playlists {
-                grid-template-columns:
-                    repeat(2, 1fr);
-            }
-
-            h1 {
-                font-size: 32px;
-            }
-
-        }
-
-        @media (max-width: 450px) {
-
-            .playlists {
-                grid-template-columns: 1fr;
-            }
-
-        }
-.music-panel {
-    display: none;
-
+.menu-drawer {
     position: fixed;
-    right: 7%;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 78px;
+    right: 24px;
+    z-index: 1100;
+    min-width: 180px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: rgba(16,20,24,.92);
+    box-shadow: var(--shadow);
+    transform: translateY(-10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: .2s ease;
+}
 
-    width: 360px;
-    padding: 30px;
+.menu-drawer.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
 
+.menu-drawer button {
+    width: 100%;
+    border: 0;
+    padding: 10px 12px;
+    margin: 4px 0;
+    border-radius: 10px;
+    background: transparent;
+    color: white;
+    text-align: left;
+    cursor: pointer;
+}
+
+.menu-drawer button:hover {
+    background: rgba(255,255,255,.08);
+}
+
+.container {
+    width: min(1280px, 100%);
+    margin: 0 auto;
+    padding: 100px 34px 140px;
+}
+
+.hero {
     text-align: center;
+    margin-bottom: 44px;
+}
 
-    background: rgba(20, 20, 20, 0.55);
+.hero h1 {
+    margin: 0;
+    font-family: "Dancing Script", cursive;
+    font-size: clamp(50px, 6vw, 84px);
+    line-height: .95;
+    font-weight: 600;
+    letter-spacing: -.5px;
+}
 
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 25px;
+.hero h1 span {
+    color: var(--accent);
+}
 
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+.hero p {
+    margin: 16px 0 0;
+    font-size: 18px;
+    color: #d7dce1;
+}
 
-    z-index: 100;
+.main-grid {
+    display: grid;
+    grid-template-columns: minmax(520px, 1fr) 360px;
+    gap: 48px;
+    align-items: start;
+}
+
+.playlists {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.playlist {
+    min-height: 82px;
+    padding: 18px 24px;
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: rgba(18,22,27,.62);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 10px 28px rgba(0,0,0,.22);
+    cursor: pointer;
+    transition: .25s ease;
+}
+
+.playlist:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,190,59,.58);
+    box-shadow: 0 14px 36px rgba(0,0,0,.28);
+}
+
+.playlist.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(255,190,59,.2), 0 14px 38px rgba(255,190,59,.14);
+}
+
+.emoji {
+    font-size: 49px;
+    text-align: center;
+}
+
+.playlist h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+}
+
+.playlist p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.music-panel {
+    position: sticky;
+    top: 110px;
+    display: none;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: rgba(10,14,18,.72);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--shadow);
+}
+
+.music-art {
+    width: 100%;
+    aspect-ratio: 1 / .78;
+    object-fit: cover;
+    border-radius: 16px;
+    display: block;
+    background: rgba(255,255,255,.06);
 }
 
 .music-icon {
-    font-size: 50px;
+    display: none;
 }
 
 .music-panel h2 {
-    margin: 10px 0;
-    font-size: 26px;
+    margin: 16px 0 5px;
+    text-align: center;
+    font-family: "Dancing Script", cursive;
+    font-size: 34px;
+    font-weight: 600;
 }
 
 .music-panel p {
-    margin: 8px 0 20px;
-    opacity: 0.8;
+    margin: 0;
+    text-align: center;
+    color: #d7dce1;
+    font-size: 14px;
+    line-height: 1.45;
+    min-height: 42px;
 }
 
-.music-panel audio {
+.audio-wrap {
+    margin-top: 14px;
+}
+
+audio {
     width: 100%;
 }
 
 .music-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
     margin-top: 18px;
 }
 
-.music-controls button {
-    padding: 10px 16px;
-    margin: 0 6px;
-
-    border: none;
-    border-radius: 12px;
-
+.control {
+    width: 52px;
+    height: 52px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,.05);
+    color: #fff;
+    font-size: 21px;
     cursor: pointer;
-    font-size: 18px;
 }
-    </style>
-</head>
 
+.control.main {
+    width: 66px;
+    height: 66px;
+    background: var(--accent);
+    color: #1a1d20;
+    font-weight: 800;
+    font-size: 24px;
+}
+
+.control.active-control {
+    color: var(--accent);
+}
+
+#backButton {
+    position: fixed;
+    left: 28px;
+    top: 104px;
+    z-index: 900;
+    display: none;
+    border: 0;
+    background: rgba(10,15,20,.48);
+    color: white;
+    border-radius: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+}
+
+body.player-open #backButton {
+    display: block;
+}
+
+.bottom-player {
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    z-index: 900;
+
+    width: 390px;
+    height: 68px;
+
+    padding: 7px 12px;
+
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) 38px 38px 38px;
+    align-items: center;
+    gap: 9px;
+
+    border: 1px solid var(--border);
+    border-radius: 16px;
+
+    background: rgba(19, 24, 30, 0.78);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--shadow);
+}
+
+.mini-art {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.mini-meta {
+    min-width: 0;
+}
+
+.mini-title {
+    font-family: "Dancing Script", cursive;
+    font-size: 19px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mini-artist {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.mini-artist {
+    color: var(--muted);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mini-control {
+    border: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: transparent;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.mini-control:hover {
+    background: rgba(255,255,255,.08);
+}
+
+.footer-note {
+    position: fixed;
+    left: 28px;
+    bottom: 24px;
+    z-index: 800;
+    color: var(--accent);
+    font-size: 13px;
+}
+
+.socials {
+    position: fixed;
+    left: 238px;
+    bottom: 18px;
+    z-index: 800;
+    display: flex;
+    gap: 8px;
+}
+
+.social {
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(10,15,20,.48);
+    color: #fff;
+}
+
+.rotate-hint {
+    display: none;
+}
+
+@media (max-width: 980px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .music-panel {
+        position: relative;
+        top: 0;
+        max-width: 620px;
+        margin: 18px auto 0;
+    }
+
+    .footer-note, .socials {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .topbar {
+        padding: 14px 16px;
+    }
+
+    .brand-name {
+        font-size: 27px;
+    }
+
+    .brand-mark {
+        font-size: 22px;
+    }
+
+    .version {
+        font-size: 11px;
+    }
+
+    .container {
+        padding: 86px 14px 120px;
+    }
+
+    .hero h1 {
+        font-size: 44px;
+    }
+
+    .hero p {
+        font-size: 14px;
+    }
+
+    .playlist {
+        min-height: 76px;
+        padding: 12px 14px;
+        grid-template-columns: 52px 1fr;
+        gap: 10px;
+        border-radius: 16px;
+    }
+
+    .emoji {
+        font-size: 36px;
+    }
+
+    .playlist h2 {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    .playlist p {
+        font-size: 12px;
+    }
+
+    .music-panel {
+        border-radius: 18px;
+        padding: 14px;
+    }
+
+    .music-panel h2 {
+        font-size: 30px;
+    }
+
+    .music-panel p {
+        font-size: 12px;
+    }
+
+    .bottom-player {
+        bottom: 10px;
+        width: calc(100vw - 20px);
+        height: 58px;
+        grid-template-columns: 40px minmax(0, 1fr) 34px 34px 34px;
+        padding: 6px 8px;
+    }
+
+    .mini-art {
+        width: 46px;
+        height: 46px;
+    }
+
+    .mini-title {
+        font-size: 19px;
+    }
+
+    .mini-artist {
+        font-size: 11px;
+    }
+
+    #backButton {
+        left: 14px;
+        top: 74px;
+    }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+    .rotate-hint {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,.72);
+        backdrop-filter: blur(6px);
+    }
+
+    .rotate-card {
+        padding: 24px 26px;
+        text-align: center;
+        border-radius: 20px;
+        background: rgba(25,29,34,.96);
+        color: white;
+    }
+
+    .phone-icon {
+        display: block;
+        font-size: 56px;
+        animation: phoneRotate .8s ease-in-out infinite;
+    }
+
+    @keyframes phoneRotate {
+        0%, 25% { transform: rotate(0deg); }
+        65%, 85% { transform: rotate(90deg); }
+        100% { transform: rotate(0deg); }
+    }
+
+    .rotate-title {
+        margin-top: 10px;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .rotate-text {
+        margin-top: 5px;
+        font-size: 13px;
+        opacity: .8;
+    }
+}
+/* REFINED DESKTOP LAYOUT + CATEGORY MOOD */
+@media (min-width: 981px) {
+    .container {
+        width: min(1450px, calc(100% - 40px)) !important;
+        max-width: none !important;
+    }
+
+    .main-grid {
+        grid-template-columns: 620px 360px !important;
+        justify-content: space-between !important;
+        column-gap: 0 !important;
+    }
+
+    .playlists {
+        width: 620px !important;
+        gap: 18px !important;
+        transform: none !important;
+    }
+
+    .music-panel {
+        width: 360px !important;
+        transform: none !important;
+    }
+}
+/* CATEGORY MOOD ACCENTS */
+.hero h1 span {
+    color: var(--mood);
+    transition: color .35s ease;
+}
+
+.playlist.active {
+    border-color: var(--mood);
+    box-shadow:
+        0 0 0 1px var(--mood-soft),
+        0 14px 38px var(--mood-soft);
+}
+
+.control.main {
+    background: var(--mood);
+    transition: background .35s ease, transform .2s ease;
+}
+
+.bottom-player {
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.45),
+        0 0 24px var(--mood-soft);
+}
+
+</style>
+</head>
 
 <body>
 
-    <div class="container">
-<button id="backButton" onclick="goHome()">← Categories</button>
-        <div class="logo">
-            🎵
-        </div>
-
-        <h1>
-            My Music World
-        </h1>
-
-        <div class="subtitle">
-            Choose a place, not a song.
-        </div>
-
-
-        <div class="playlist"
-     onclick="choosePlaylist('village')">
-
-    <div class="emoji">
-        🏡
+<header class="topbar">
+    <div class="brand">
+        <span class="brand-mark">⌁</span>
+        <span class="brand-name">RoadTunes</span>
+        <span class="version">V2</span>
     </div>
 
-    <h2>
-        Village
-    </h2>
+    <div class="top-actions">
+        <button class="icon-btn" onclick="toggleTheme()" aria-label="Theme">☼</button>
+        <button class="icon-btn" onclick="toggleMenu()" aria-label="Menu">☰</button>
+    </div>
+</header>
 
-    <p>
-        Peaceful countryside
-    </p>
-
+<div id="menuDrawer" class="menu-drawer">
+    <button onclick="goHome()">Home</button>
+    <button onclick="toggleShuffle()">Shuffle</button>
+    <button onclick="toggleRepeat()">Repeat</button>
 </div>
 
+<div id="rotateHint" class="rotate-hint">
+    <div class="rotate-card">
+        <span class="phone-icon">📱</span>
+        <div class="rotate-title">For a better experience</div>
+        <div class="rotate-text">Please rotate your phone ↻</div>
+    </div>
+</div>
 
-            <div class="playlist"
-                 onclick="choosePlaylist('town')">
+<div class="container">
 
-                <div class="emoji">
-                    🏙️
+    <button id="backButton" onclick="goHome()">← Categories</button>
+
+    <section class="hero">
+        <h1><span>Choose</span> a place, not a song.</h1>
+        <p id="heroSubtitle">Immerse yourself in handpicked music and stunning vibes.</p>
+    </section>
+
+    <div class="main-grid">
+
+        <div class="playlists">
+
+            <div class="playlist active" data-place="village" onclick="choosePlaylist('village')">
+                <div class="emoji">🏡</div>
+                <div>
+                    <h2>Village</h2>
+                    <p>Peaceful countryside</p>
                 </div>
-
-                <h2>
-                    Town
-                </h2>
-
-                <p>
-                    Streets & city life
-                </p>
-
             </div>
 
-
-            <div class="playlist"
-                 onclick="choosePlaylist('mountain')">
-
-                <div class="emoji">
-                    🏔️
+            <div class="playlist" data-place="town" onclick="choosePlaylist('town')">
+                <div class="emoji">🏙️</div>
+                <div>
+                    <h2>Town</h2>
+                    <p>Streets & daily life</p>
                 </div>
-
-                <h2>
-                    Mountain
-                </h2>
-
-                <p>
-                    Roads above the clouds
-                </p>
-
             </div>
 
-
-            <div class="playlist"
-                 onclick="choosePlaylist('river')">
-
-                <div class="emoji">
-                    🌊
+            <div class="playlist" data-place="mountain" onclick="choosePlaylist('mountain')">
+                <div class="emoji">🏔️</div>
+                <div>
+                    <h2>Mountain</h2>
+                    <p>Roads above the clouds</p>
                 </div>
-
-                <h2>
-                    River
-                </h2>
-
-                <p>
-                    Flow with the water
-                </p>
-
             </div>
 
-
-            <div class="playlist"
-                 onclick="choosePlaylist('rain')">
-
-                <div class="emoji">
-                    🌧️
+            <div class="playlist" data-place="river" onclick="choosePlaylist('river')">
+                <div class="emoji">🌊</div>
+                <div>
+                    <h2>River</h2>
+                    <p>Flow with the water</p>
                 </div>
-
-                <h2>
-                    Rain
-                </h2>
-
-                <p>
-                    A rainy evening
-                </p>
-
             </div>
 
-
-            <div class="playlist"
-                 onclick="choosePlaylist('forest')">
-
-                <div class="emoji">
-                    🌲
+            <div class="playlist" data-place="rain" onclick="choosePlaylist('rain')">
+                <div class="emoji">🌧️</div>
+                <div>
+                    <h2>Rain</h2>
+                    <p>A rainy evening</p>
                 </div>
+            </div>
 
-                <h2>
-                    Forest
-                </h2>
-
-                <p>
-                    Lost in nature
-                </p>
-
+            <div class="playlist" data-place="forest" onclick="choosePlaylist('forest')">
+                <div class="emoji">🌲</div>
+                <div>
+                    <h2>Forest</h2>
+                    <p>Lost in nature</p>
+                </div>
             </div>
 
         </div>
 
-    </div>
+        <aside id="musicPanel" class="music-panel">
+            <img id="artwork" class="music-art" src="background.png" alt="Playlist artwork">
 
-<div id="musicPanel" class="music-panel" style="display: none;">
+            <h2 id="playerTitle">Choose a place</h2>
+            <p id="songTitle">Select a playlist to start listening</p>
 
-    <div class="music-icon">
-        🎵
-    </div>
+            <div class="audio-wrap">
+                <audio id="player" controls></audio>
+            </div>
 
-    <h2 id="playerTitle">
-        Choose a place
-    </h2>
-
-    <p id="songTitle">
-        Select a playlist to start listening
-    </p>
-
-    <audio id="player" controls></audio>
-
-    <div class="music-controls">
-
-        <button onclick="previousSong()">⏮</button>
-
-        <button onclick="togglePlay()" id="playButton">
-            ▶️
-        </button>
-
-        <button onclick="nextSong()">⏭</button>
+            <div class="music-controls">
+                <button id="shuffleButton" class="control active-control" onclick="toggleShuffle()" title="Shuffle">⤨</button>
+                <button class="control" onclick="previousSong()" title="Previous">◀</button>
+                <button class="control main" onclick="togglePlay()" id="playButton" title="Play/Pause">▶</button>
+                <button class="control" onclick="nextSong()" title="Next">▶</button>
+                <button id="repeatButton" class="control" onclick="toggleRepeat()" title="Repeat">↻</button>
+            </div>
+        </aside>
 
     </div>
-
 </div>
-  <script>
 
-let playlistSongs = {
-    
-    village: [
-        "village/song1.mp3",
-        "village/song2.mp3"
-    ],
+<div class="footer-note">♡ &nbsp; Relax. Focus. Enjoy.</div>
+<div class="socials">
+    <button class="social">◎</button>
+    <button class="social">𝕏</button>
+    <button class="social">◉</button>
+</div>
 
-    town: [
-        "town/song3.mp3"
-    ],
+<div class="bottom-player">
+    <img id="miniArt" class="mini-art" src="background.png" alt="">
+    <div class="mini-meta">
+        <div id="miniTitle" class="mini-title">Rain</div>
+        <div id="miniArtist" class="mini-artist">RoadTunes</div>
+    </div>
+    <button class="mini-control" onclick="previousSong()">◀</button>
+    <button id="miniPlayButton" class="mini-control" onclick="togglePlay()">Ⅱ</button>
+    <button class="mini-control" onclick="nextSong()">▶</button>
+</div>
 
-    mountain: [
-        "mountain/song4.mp3"
-    ],
-
-    river: [
-        "river/song5.mp3"
-    ],
-
-    rain: [
-        "rain/song1.mp3"
-    ],
-
-    forest: [
-        "forest/song2.mp3"
-    ]
-};
+<script>
+let playlistSongs = {};
 let currentPlaylist = [];
 let currentSong = 0;
+let currentPlace = "village";
+let isShuffleOn = true;
+let isRepeatOn = false;
+
+const player = document.getElementById("player");
+const playButton = document.getElementById("playButton");
+const playerTitle = document.getElementById("playerTitle");
+const songTitle = document.getElementById("songTitle");
+const musicPanel = document.getElementById("musicPanel");
+const artwork = document.getElementById("artwork");
+const miniArt = document.getElementById("miniArt");
+const miniTitle = document.getElementById("miniTitle");
+const miniArtist = document.getElementById("miniArtist");
+const shuffleButton = document.getElementById("shuffleButton");
+const repeatButton = document.getElementById("repeatButton");
+const heroSubtitle = document.getElementById("heroSubtitle");
+
+const moodData = {
+    village: {
+        subtitle: "Slow down. Breathe.",
+        color: "#ffbd45",
+        glow: "rgba(255, 189, 69, 0.24)",
+        overlay: "rgba(255, 160, 35, 0.24)"
+    },
+
+    town: {
+        subtitle: "Life moves fast here.",
+        color: "#ff914d",
+        glow: "rgba(255, 145, 77, 0.24)",
+        overlay: "rgba(255, 105, 35, 0.18)"
+    },
+
+    mountain: {
+        subtitle: "Above the noise.",
+        color: "#72b7ff",
+        glow: "rgba(114, 183, 255, 0.26)",
+        overlay: "rgba(45, 115, 255, 0.30)"
+    },
+
+    river: {
+        subtitle: "Go with the flow.",
+        color: "#39d8ff",
+        glow: "rgba(57, 216, 255, 0.25)",
+        overlay: "rgba(0, 175, 255, 0.28)"
+    },
+
+    rain: {
+        subtitle: "Let the rain play.",
+        color: "#6d9fff",
+        glow: "rgba(109, 159, 255, 0.28)",
+        overlay: "rgba(35, 85, 220, 0.34)"
+    },
+
+    forest: {
+        subtitle: "Get lost in nature.",
+        color: "#6bd76b",
+        glow: "rgba(107, 215, 107, 0.25)",
+        overlay: "rgba(35, 145, 55, 0.27)"
+    }
+};
 async function loadPlaylists() {
     try {
         const response = await fetch("/api/playlists");
-
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
         playlistSongs = await response.json();
-
         console.log("Playlists loaded:", playlistSongs);
-
         return true;
     } catch (error) {
         console.error("Playlist loading error:", error);
-
         playlistSongs = {};
-
         return false;
     }
 }
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [array[i], array[randomIndex]] = [array[randomIndex], array[i]];
+    }
+    return array;
+}
+
 async function choosePlaylist(place) {
+    currentPlace = place;
 
-    console.log("Selected playlist:", place);
+    const mood = moodData[place];
 
-    // Move layout
+    if (mood) {
+        document.body.style.setProperty("--mood", mood.color);
+        document.body.style.setProperty("--mood-soft", mood.glow);
+        heroSubtitle.innerText = mood.subtitle;
+
+        document.body.style.background = `
+            linear-gradient(${mood.overlay}, rgba(0,0,0,0.42)),
+            url("${place}.png") center / cover no-repeat fixed
+        `;
+    } else {
+        document.body.style.background = `
+            linear-gradient(rgba(0,0,0,0.26), rgba(0,0,0,0.42)),
+            url("${place}.png") center / cover no-repeat fixed
+        `;
+    }
+
     document.body.classList.add("player-open");
-
-    // Show music panel
     musicPanel.style.display = "block";
 
-    // Change background
-    document.body.style.background = `
-        linear-gradient(
-            rgba(0,0,0,0.12),
-            rgba(0,0,0,0.20)
-        ),
-        url("${place}.png")
-        center / cover no-repeat fixed
-    `;
+    const prettyPlace = place.charAt(0).toUpperCase() + place.slice(1);
+    playerTitle.innerText = prettyPlace;
+    artwork.src = `${place}.png`;
+    miniArt.src = `${place}.png`;
+    setActivePlaylist(place);
 
-    // Update title
-    playerTitle.innerText =
-        place.charAt(0).toUpperCase() + place.slice(1);
-
-    // Load latest playlist data
     const loaded = await loadPlaylists();
-
     if (!loaded) {
         songTitle.innerText = "Could not load songs";
         return;
     }
 
-    // Get selected playlist
     currentPlaylist = [...(playlistSongs[place] || [])];
-shufflePlaylist();
-currentSong = 0;
-function shufflePlaylist() {
-    for (let i = currentPlaylist.length - 1; i > 0; i--) {
-        const randomIndex = Math.floor(Math.random() * (i + 1));
+    if (isShuffleOn) shuffleArray(currentPlaylist);
+    currentSong = 0;
 
-        [currentPlaylist[i], currentPlaylist[randomIndex]] =
-            [currentPlaylist[randomIndex], currentPlaylist[i]];
-    }
-}
-    console.log("Playlist songs:", currentPlaylist);
-
-    // No songs
     if (currentPlaylist.length === 0) {
         songTitle.innerText = "No songs in this playlist";
         player.removeAttribute("src");
         player.load();
+        updateMiniPlayer();
         return;
     }
 
-    // Load first song
     loadSong();
 
-    // Try autoplay
     try {
         await player.play();
-        playButton.innerText = "⏸️";
+        setPlayState(true);
     } catch (error) {
         console.log("Autoplay blocked:", error);
-        playButton.innerText = "▶️";
+        setPlayState(false);
     }
+
+    if (window.innerWidth <= 600) {
+    setTimeout(() => {
+        musicPanel.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }, 150);
 }
-    
+}
 
-   
-    
-
+function setActivePlaylist(place) {
+    document.querySelectorAll(".playlist").forEach(card => {
+        card.classList.toggle("active", card.dataset.place === place);
+    });
+}
 
 function loadSong() {
-
-    if (!currentPlaylist || currentPlaylist.length === 0) {
-        return;
-    }
+    if (!currentPlaylist.length) return;
 
     const song = currentPlaylist[currentSong];
-
-    console.log("Loading song:", song);
-
-    // API already gives the complete URL
     player.src = song.file;
-
     player.load();
 
-    // Show actual song name
     songTitle.innerText = song.name;
+    miniTitle.innerText = song.name;
+    miniArtist.innerText = currentPlace.charAt(0).toUpperCase() + currentPlace.slice(1);
 
-    playButton.innerText = "▶️";
+    updateMiniPlayer();
+    playButton.innerText = "▶";
 }
 
+function setPlayState(isPlaying) {
+    playButton.innerText = isPlaying ? "Ⅱ" : "▶";
+    document.body.classList.toggle("is-playing", isPlaying);
+    document.getElementById("miniPlayButton").innerText = isPlaying ? "Ⅱ" : "▶";
+}
 
-    
-
-
-
-function togglePlay() {
-
+async function togglePlay() {
     if (player.paused) {
-
-        player.play();
-
-        playButton.innerText = "⏸️";
-
+        try {
+            await player.play();
+            setPlayState(true);
+        } catch (error) {
+            console.log("Play blocked:", error);
+        }
     } else {
-
         player.pause();
-
-        playButton.innerText = "▶️";
+        setPlayState(false);
     }
 }
-
 
 function nextSong() {
-
-    if (currentPlaylist.length === 0) {
-        return;
-    }
-
+    if (!currentPlaylist.length) return;
 
     currentSong++;
-
-    if (currentSong >= currentPlaylist.length) {
-        currentSong = 0;
-    }
-
+    if (currentSong >= currentPlaylist.length) currentSong = 0;
 
     loadSong();
-
-    player.play();
-
-    playButton.innerText = "⏸️";
+    player.play().then(() => setPlayState(true)).catch(() => setPlayState(false));
 }
-
 
 function previousSong() {
-
-    if (currentPlaylist.length === 0) {
-        return;
-    }
-
+    if (!currentPlaylist.length) return;
 
     currentSong--;
-
-    if (currentSong < 0) {
-        currentSong =
-            currentPlaylist.length - 1;
-    }
-
+    if (currentSong < 0) currentSong = currentPlaylist.length - 1;
 
     loadSong();
-
-    player.play();
-
-    playButton.innerText = "⏸️";
+    player.play().then(() => setPlayState(true)).catch(() => setPlayState(false));
 }
 
+function toggleShuffle() {
+    isShuffleOn = !isShuffleOn;
+    shuffleButton.classList.toggle("active-control", isShuffleOn);
 
-// Automatically play next song
+    if (isShuffleOn && currentPlaylist.length > 1) {
+        const current = currentPlaylist[currentSong];
+        const remaining = currentPlaylist.filter((_, i) => i !== currentSong);
+        shuffleArray(remaining);
+        currentPlaylist = [current, ...remaining];
+        currentSong = 0;
+    }
+}
+
+function toggleRepeat() {
+    isRepeatOn = !isRepeatOn;
+    repeatButton.classList.toggle("active-control", isRepeatOn);
+}
+
 player.addEventListener("ended", () => {
-    nextSong();
+    if (isRepeatOn) {
+        player.currentTime = 0;
+        player.play().then(() => setPlayState(true)).catch(() => {});
+    } else {
+        nextSong();
+    }
 });
 
+player.addEventListener("play", () => setPlayState(true));
+player.addEventListener("pause", () => setPlayState(false));
+
+function updateMiniPlayer() {
+    miniArt.src = `${currentPlace}.png`;
+}
 
 function goHome() {
     location.reload();
 }
 
+function toggleTheme() {
+    document.body.classList.toggle("light-ui");
+}
+
+function toggleMenu() {
+    document.getElementById("menuDrawer").classList.toggle("open");
+}
+
+// Hint: only on portrait phones, once per page load.
+window.addEventListener("DOMContentLoaded", () => {
+
+    // Default mood on first page load: Village
+    const initialMood = moodData["village"];
+
+    if (initialMood) {
+        document.body.style.setProperty("--mood", initialMood.color);
+        document.body.style.setProperty("--mood-soft", initialMood.glow);
+
+        heroSubtitle.innerText = initialMood.subtitle;
+
+        document.body.style.background = `
+            linear-gradient(
+                ${initialMood.overlay},
+                rgba(0, 0, 0, 0.38)
+            ),
+            url("village.png") center / cover no-repeat fixed
+        `;
+    }
+
+    // Rotate-phone hint: only on portrait phones
+    const hint = document.getElementById("rotateHint");
+
+    if (!hint) return;
+
+    const portraitPhone = window.matchMedia(
+        "(max-width: 600px) and (orientation: portrait)"
+    ).matches;
+
+    if (!portraitPhone) {
+        hint.style.display = "none";
+        return;
+    }
+
+    setTimeout(() => {
+        hint.style.setProperty("display", "none", "important");
+    }, 1000);
+});
 </script>
 
 </body>
-
 </html>
