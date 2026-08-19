@@ -638,6 +638,201 @@ body.player-open #backButton {
         0 0 24px var(--mood-soft);
 }
 
+
+
+/* Request a Song: tiny visible shortcut only while the player is open. */
+.bottom-player { display: none; }
+
+.request-song-strip {
+    position: fixed;
+    left: 50%;
+    bottom: 94px;
+    transform: translateX(-50%);
+    z-index: 920;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 32px;
+    min-width: 150px;
+    padding: 6px 15px;
+    border: 1px solid var(--mood);
+    border-radius: 999px;
+    color: var(--mood);
+    background: rgba(12,16,20,.66);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 10px 28px rgba(0,0,0,.25), 0 0 18px var(--mood-soft);
+    font-family: "Dancing Script", cursive;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .2px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color .35s ease, border-color .35s ease, box-shadow .35s ease, transform .2s ease;
+}
+.request-song-strip:hover { transform: translateX(-50%) translateY(-2px); }
+.request-song-strip span { font-family: Inter, sans-serif; font-size: 12px; opacity: .9; }
+
+body.player-open .bottom-player,
+body.player-open .request-song-strip { display: grid; }
+
+.request-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.request-modal.open { display: flex; }
+.request-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.58);
+    backdrop-filter: blur(8px);
+}
+.request-card {
+    position: relative;
+    width: min(430px, 100%);
+    padding: 26px;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: rgba(17,21,26,.96);
+    box-shadow: var(--shadow);
+    animation: requestIn .22s ease both;
+}
+@keyframes requestIn {
+    from { opacity: 0; transform: translateY(14px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.request-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+}
+.request-kicker {
+    margin-bottom: 4px;
+    color: var(--mood);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+.request-card h3 {
+    margin: 0;
+    font-family: "Dancing Script", cursive;
+    font-size: 34px;
+    font-weight: 600;
+}
+.request-subtitle {
+    margin: 4px 0 18px;
+    color: var(--muted);
+    font-size: 13px;
+}
+.request-label {
+    display: block;
+    margin: 12px 0 6px;
+    color: #e9edf0;
+    font-size: 12px;
+    font-weight: 700;
+}
+.request-label span { color: var(--muted); font-weight: 500; }
+.request-input {
+    width: 100%;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 12px;
+    padding: 11px 12px;
+    outline: none;
+    color: #fff;
+    background: rgba(255,255,255,.05);
+    font: inherit;
+    transition: border-color .25s ease, box-shadow .25s ease;
+}
+.request-input:focus {
+    border-color: var(--mood);
+    box-shadow: 0 0 0 3px var(--mood-soft);
+}
+.request-textarea { min-height: 84px; resize: vertical; }
+.request-submit {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--mood);
+    color: #111;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform .2s ease, filter .2s ease, background .35s ease;
+}
+.request-submit:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.request-status {
+    min-height: 18px;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+}
+@media (max-width: 600px) {
+    .request-song-strip { bottom: 76px; min-width: 142px; min-height: 30px; font-size: 13px; padding: 5px 13px; }
+    .request-card { padding: 22px 18px 18px; border-radius: 18px; }
+    .request-card h3 { font-size: 30px; }
+}
+
+/* Request mood/place selector */
+.request-place-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.request-place-btn {
+    min-height: 46px;
+    padding: 8px 7px;
+    border: 1px solid rgba(255,255,255,.11);
+    border-radius: 12px;
+    background: rgba(255,255,255,.045);
+    color: #edf1f4;
+    font: 600 12px/1.1 Inter, Arial, sans-serif;
+    cursor: pointer;
+    transition: .22s ease;
+}
+.request-place-btn .request-place-emoji {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 20px;
+    line-height: 1;
+}
+.request-place-btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--mood);
+    box-shadow: 0 6px 16px var(--mood-soft);
+}
+.request-place-btn.selected {
+    border-color: var(--mood);
+    background: var(--mood-soft);
+    color: #fff;
+    box-shadow: 0 0 0 1px var(--mood-soft), 0 8px 20px var(--mood-soft);
+}
+.request-place-btn.selected .request-place-emoji {
+    filter: drop-shadow(0 0 5px var(--mood));
+}
+.request-place-hint {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 11px;
+}
+@media (max-width: 420px) {
+    .request-place-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 </style>
 </head>
 
@@ -683,7 +878,7 @@ body.player-open #backButton {
 
         <div class="playlists">
 
-            <div class="playlist active" data-place="village" onclick="choosePlaylist('village')">
+            <div class="playlist" data-place="village" onclick="choosePlaylist('village')">
                 <div class="emoji">🏡</div>
                 <div>
                     <h2>Village</h2>
@@ -762,22 +957,53 @@ body.player-open #backButton {
     <button class="social">◉</button>
 </div>
 
+<button id="requestSongStrip" class="request-song-strip" type="button" onclick="openRequestSong()">
+    <span>♪</span> Request a song
+</button>
+
 <div class="bottom-player">
     <img id="miniArt" class="mini-art" src="background.png" alt="">
     <div class="mini-meta">
-        <div id="miniTitle" class="mini-title">Rain</div>
+        <div id="miniTitle" class="mini-title">Choose a place</div>
         <div id="miniArtist" class="mini-artist">RoadTunes</div>
     </div>
-    <button class="mini-control" onclick="previousSong()">◀</button>
-    <button id="miniPlayButton" class="mini-control" onclick="togglePlay()">Ⅱ</button>
-    <button class="mini-control" onclick="nextSong()">▶</button>
+    <button class="mini-control" onclick="previousSong()" aria-label="Previous">◀</button>
+    <button id="miniPlayButton" class="mini-control" onclick="togglePlay()" aria-label="Play/Pause">▶</button>
+    <button class="mini-control" onclick="nextSong()" aria-label="Next">▶</button>
+</div>
+
+<div id="requestModal" class="request-modal" aria-hidden="true">
+    <div class="request-backdrop" onclick="closeRequestSong()"></div>
+    <div class="request-card" role="dialog" aria-modal="true" aria-labelledby="requestTitle">
+        <button class="request-close" type="button" onclick="closeRequestSong()" aria-label="Close">×</button>
+        <div class="request-kicker">ROADTUNES</div>
+        <h3 id="requestTitle">Request a song</h3>
+        <p class="request-subtitle">Tell us what you want to hear next.</p>
+        <label class="request-label" for="requestSongName">Song name</label>
+        <input id="requestSongName" class="request-input" type="text" maxlength="120" placeholder="e.g. a chill travel song">
+        <label class="request-label">Choose a place / mood <span>(optional)</span></label>
+        <div id="requestPlaceGrid" class="request-place-grid" role="group" aria-label="Choose a place or mood">
+            <button class="request-place-btn" type="button" data-request-place="village" onclick="selectRequestPlace('village')"><span class="request-place-emoji">🏡</span>Village</button>
+            <button class="request-place-btn" type="button" data-request-place="town" onclick="selectRequestPlace('town')"><span class="request-place-emoji">🏙️</span>Town</button>
+            <button class="request-place-btn" type="button" data-request-place="mountain" onclick="selectRequestPlace('mountain')"><span class="request-place-emoji">🏔️</span>Mountain</button>
+            <button class="request-place-btn" type="button" data-request-place="river" onclick="selectRequestPlace('river')"><span class="request-place-emoji">🌊</span>River</button>
+            <button class="request-place-btn" type="button" data-request-place="rain" onclick="selectRequestPlace('rain')"><span class="request-place-emoji">🌧️</span>Rain</button>
+            <button class="request-place-btn" type="button" data-request-place="forest" onclick="selectRequestPlace('forest')"><span class="request-place-emoji">🌲</span>Forest</button>
+        </div>
+        <div class="request-place-hint">Pick the place/mood you want the song to fit.</div>
+
+        <label class="request-label" for="requestNote">Why do you want it? <span>(optional)</span></label>
+        <textarea id="requestNote" class="request-input request-textarea" maxlength="300" placeholder="Road trip, rainy evening, party, missing someone..."></textarea>
+        <button class="request-submit" type="button" onclick="submitSongRequest()">Send request <span>↗</span></button>
+        <div id="requestStatus" class="request-status" aria-live="polite"></div>
+    </div>
 </div>
 
 <script>
 let playlistSongs = {};
 let currentPlaylist = [];
 let currentSong = 0;
-let currentPlace = "village";
+let currentPlace = "";
 let isShuffleOn = true;
 let isRepeatOn = false;
 
@@ -793,6 +1019,12 @@ const miniArtist = document.getElementById("miniArtist");
 const shuffleButton = document.getElementById("shuffleButton");
 const repeatButton = document.getElementById("repeatButton");
 const heroSubtitle = document.getElementById("heroSubtitle");
+const requestSongStrip = document.getElementById("requestSongStrip");
+const requestModal = document.getElementById("requestModal");
+const requestSongName = document.getElementById("requestSongName");
+const requestNote = document.getElementById("requestNote");
+const requestStatus = document.getElementById("requestStatus");
+let requestSelectedPlace = "";
 
 const moodData = {
     village: {
@@ -837,6 +1069,77 @@ const moodData = {
         overlay: "rgba(35, 145, 55, 0.27)"
     }
 };
+function openRequestSong() {
+    if (!document.body.classList.contains("player-open")) return;
+
+    requestModal.classList.add("open");
+    requestModal.setAttribute("aria-hidden", "false");
+    requestStatus.innerText = "";
+    requestSelectedPlace = currentPlace || "";
+
+    document.querySelectorAll(".request-place-btn").forEach(button => {
+        button.classList.toggle("selected", button.dataset.requestPlace === requestSelectedPlace);
+    });
+
+    if (!requestSongName.value.trim() && currentPlaylist.length) {
+        requestSongName.value = currentPlaylist[currentSong]?.name || "";
+    }
+
+    setTimeout(() => requestSongName.focus(), 60);
+}
+
+function selectRequestPlace(place) {
+    if (!moodData[place]) return;
+    requestSelectedPlace = place;
+
+    document.querySelectorAll(".request-place-btn").forEach(button => {
+        button.classList.toggle("selected", button.dataset.requestPlace === place);
+    });
+}
+
+function closeRequestSong() {
+    requestModal.classList.remove("open");
+    requestModal.setAttribute("aria-hidden", "true");
+}
+
+function submitSongRequest() {
+    const song = requestSongName.value.trim();
+    const note = requestNote.value.trim();
+
+    if (!song) {
+        requestStatus.innerText = "Please enter a song name.";
+        requestSongName.focus();
+        return;
+    }
+
+    const requests = JSON.parse(localStorage.getItem("roadtunesSongRequests") || "[]");
+
+    requests.push({
+        song,
+        place: requestSelectedPlace || null,
+        reason: note || null,
+        requestedFrom: currentPlace || null,
+        createdAt: new Date().toISOString()
+    });
+
+    localStorage.setItem("roadtunesSongRequests", JSON.stringify(requests));
+    requestStatus.innerText = "Request saved. Thank you! ✨";
+
+    requestSongName.value = "";
+    requestNote.value = "";
+    requestSelectedPlace = "";
+
+    document.querySelectorAll(".request-place-btn").forEach(button => {
+        button.classList.remove("selected");
+    });
+
+    setTimeout(closeRequestSong, 900);
+}
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeRequestSong();
+});
+
 async function loadPlaylists() {
     try {
         const response = await fetch("/api/playlists");
@@ -1023,6 +1326,7 @@ function updateMiniPlayer() {
 }
 
 function goHome() {
+    closeRequestSong();
     location.reload();
 }
 
@@ -1036,24 +1340,6 @@ function toggleMenu() {
 
 // Hint: only on portrait phones, once per page load.
 window.addEventListener("DOMContentLoaded", () => {
-
-    // Default mood on first page load: Village
-    const initialMood = moodData["village"];
-
-    if (initialMood) {
-        document.body.style.setProperty("--mood", initialMood.color);
-        document.body.style.setProperty("--mood-soft", initialMood.glow);
-
-        heroSubtitle.innerText = initialMood.subtitle;
-
-        document.body.style.background = `
-            linear-gradient(
-                ${initialMood.overlay},
-                rgba(0, 0, 0, 0.38)
-            ),
-            url("village.png") center / cover no-repeat fixed
-        `;
-    }
 
     // Rotate-phone hint: only on portrait phones
     const hint = document.getElementById("rotateHint");
