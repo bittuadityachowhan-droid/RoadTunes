@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RoadTunes V2</title>
+<link rel="icon" type="image/png" href="favicon.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -832,7 +834,177 @@ body.player-open .request-song-strip { display: grid; }
 @media (max-width: 420px) {
     .request-place-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+ .about-modal{
+   position:fixed;
+   inset:0;
+   z-index:6000;
+   display:none;
+   align-items:center;
+   justify-content:center;
+   padding:20px;
+ }
 
+ .about-modal.open{
+   display:flex;
+ }
+
+ .about-backdrop{
+   position:absolute;
+   inset:0;
+   background:rgba(0,0,0,.62);
+   backdrop-filter:blur(10px);
+   -webkit-backdrop-filter:blur(10px);
+ }
+
+ .about-card{
+   position:relative;
+   width:min(620px, 100%);
+   padding:30px 30px 24px;
+   border:1px solid var(--mood);
+   border-radius:24px;
+   background:linear-gradient(145deg, rgba(18,22,27,.97), rgba(11,15,19,.95));
+   box-shadow:0 28px 80px rgba(0,0,0,.5), 0 0 30px var(--mood-soft);
+   overflow:hidden;
+   animation:aboutIn .24s ease both;
+ }
+
+ .about-card::before{
+   content:"";
+   position:absolute;
+   width:230px;
+   height:230px;
+   right:-95px;
+   top:-120px;
+   border-radius:50%;
+   background:var(--mood-soft);
+   filter:blur(7px);
+   pointer-events:none;
+ }
+
+ @keyframes aboutIn{
+   from{opacity:0; transform:translateY(12px) scale(.98)}
+   to{opacity:1; transform:translateY(0) scale(1)}
+ }
+
+ .about-close{
+   position:absolute;
+   top:14px;
+   right:14px;
+   width:38px;
+   height:38px;
+   border:1px solid rgba(255,255,255,.1);
+   border-radius:50%;
+   background:rgba(255,255,255,.06);
+   color:#fff;
+   font-size:24px;
+   line-height:1;
+   cursor:pointer;
+   transition:background .2s ease, transform .2s ease;
+ }
+
+ .about-close:hover{
+   background:var(--mood-soft);
+   transform:rotate(3deg);
+ }
+
+ .about-kicker{
+   position:relative;
+   display:flex;
+   align-items:center;
+   gap:9px;
+   color:var(--mood);
+   font-size:11px;
+   font-weight:800;
+   letter-spacing:2px;
+   text-transform:uppercase;
+ }
+
+ .about-kicker span{
+   padding:3px 7px;
+   border:1px solid rgba(255,255,255,.15);
+   border-radius:999px;
+   color:#fff;
+   letter-spacing:.5px;
+   background:rgba(255,255,255,.04);
+ }
+
+ .about-card h2{
+   position:relative;
+   margin:8px 0 3px;
+   color:#fff;
+   font-family:"Dancing Script", cursive;
+   font-size:40px;
+   font-weight:600;
+   line-height:1;
+ }
+
+ .about-lead{
+   position:relative;
+   margin:0 0 15px;
+   color:var(--mood);
+   font-size:14px;
+   font-weight:700;
+ }
+
+ .about-copy{
+   position:relative;
+   margin:0;
+   color:#d7dce1;
+   font-size:15px;
+   line-height:1.75;
+ }
+
+ .about-divider{
+   position:relative;
+   margin:22px 0 16px;
+   height:1px;
+   background:linear-gradient(90deg, var(--mood-soft), rgba(255,255,255,.1), transparent);
+ }
+
+ .creator{
+   position:relative;
+   display:flex;
+   align-items:flex-end;
+   justify-content:space-between;
+   gap:16px;
+ }
+
+ .creator-copy{
+   display:flex;
+   flex-direction:column;
+   gap:4px;
+ }
+
+ .creator-copy span{
+   color:#969ea6;
+   font-size:11px;
+   text-transform:uppercase;
+   letter-spacing:1.5px;
+ }
+
+ .creator-copy strong{
+   color:#fff;
+   font-size:18px;
+ }
+
+ .about-signature{
+   padding:7px 11px;
+   border:1px solid var(--mood-soft);
+   border-radius:999px;
+   color:var(--mood);
+   background:var(--mood-soft);
+   font-size:11px;
+   font-weight:700;
+   white-space:nowrap;
+ }
+
+ @media (max-width:600px){
+   .about-modal{padding:14px;}
+   .about-card{padding:24px 20px 20px;border-radius:20px;}
+   .about-card h2{font-size:34px;}
+   .about-copy{font-size:14px;line-height:1.65;}
+   .creator{align-items:flex-start;flex-direction:column;gap:12px;}
+ }
 </style>
 </head>
 
@@ -855,6 +1027,7 @@ body.player-open .request-song-strip { display: grid; }
     <button onclick="goHome()">Home</button>
     <button onclick="toggleShuffle()">Shuffle</button>
     <button onclick="toggleRepeat()">Repeat</button>
+    <button onclick="openAbout()">About RoadTunes</button>
 </div>
 
 <div id="rotateHint" class="rotate-hint">
@@ -948,6 +1121,25 @@ body.player-open .request-song-strip { display: grid; }
         </aside>
 
     </div>
+
+    <div id="aboutModal" class="about-modal" aria-hidden="true">
+    <div class="about-backdrop" onclick="closeAbout()"></div>
+    <section class="about-card" role="dialog" aria-modal="true" aria-labelledby="aboutRoadTunesTitle">
+        <button class="about-close" type="button" onclick="closeAbout()" aria-label="Close About">×</button>
+        <div class="about-kicker">The RoadTunes story <span>V2</span></div>
+        <h2 id="aboutRoadTunesTitle">About RoadTunes</h2>
+        <p class="about-lead">Choose a place, not a song.</p>
+        <p class="about-copy">RoadTunes is a music experience where you choose a place, not a song. Every playlist is handcrafted to match the feeling of roads, rain, mountains, forests, villages and unforgettable journeys.</p>
+        <div class="about-divider"></div>
+        <div class="creator">
+            <div class="creator-copy">
+                <span>Created by</span>
+                <strong>Aditya Chowhan</strong>
+            </div>
+            <div class="about-signature">⚡ RoadTunes</div>
+        </div>
+    </section>
+</div>
 </div>
 
 <div class="footer-note">♡ &nbsp; Relax. Focus. Enjoy.</div>
@@ -1137,7 +1329,10 @@ function submitSongRequest() {
 }
 
 document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeRequestSong();
+    if (event.key === "Escape") {
+        closeRequestSong();
+        closeAbout();
+    }
 });
 
 async function loadPlaylists() {
@@ -1325,7 +1520,27 @@ function updateMiniPlayer() {
     miniArt.src = `${currentPlace}.png`;
 }
 
+function openAbout() {
+    const menu = document.getElementById("menuDrawer");
+    if (menu) menu.classList.remove("open");
+
+    const modal = document.getElementById("aboutModal");
+    if (!modal) return;
+
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+}
+
+function closeAbout() {
+    const modal = document.getElementById("aboutModal");
+    if (!modal) return;
+
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+}
+
 function goHome() {
+    closeAbout();
     closeRequestSong();
     location.reload();
 }
@@ -1360,6 +1575,5 @@ window.addEventListener("DOMContentLoaded", () => {
     }, 1000);
 });
 </script>
-
 </body>
 </html>
