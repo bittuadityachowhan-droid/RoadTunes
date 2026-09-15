@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RoadTunes V2</title>
 <link rel="icon" type="image/png" href="favicon.png">
+<link rel="manifest" href="manifest.webmanifest">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1104,6 +1105,8 @@ body.player-open .request-song-strip { display: grid; }
         <aside id="musicPanel" class="music-panel">
             <img id="artwork" class="music-art" src="background.png" alt="Playlist artwork">
 
+           
+
             <h2 id="playerTitle">Choose a place</h2>
             <p id="songTitle">Select a playlist to start listening</p>
 
@@ -1199,6 +1202,15 @@ let currentPlace = "";
 let isShuffleOn = true;
 let isRepeatOn = false;
 
+// Preview/transition state.
+// These variables coordinate the cached preview with the normal API playlist.
+let playlistRequestId = 0;
+let playlistSource = "none";
+let backgroundSyncTimer = null;
+let playlistSyncInFlight = false;
+const PLAYLIST_RETRY_MS = 2500;
+const PLAYLIST_FETCH_TIMEOUT_MS = 7000;
+
 const player = document.getElementById("player");
 const playButton = document.getElementById("playButton");
 const playerTitle = document.getElementById("playerTitle");
@@ -1261,6 +1273,48 @@ const moodData = {
         overlay: "rgba(35, 145, 55, 0.27)"
     }
 };
+
+/* Instant-start preview songs.
+   These are the same six MP3s pre-cached by sw.js.
+   They are only an instant cached fallback layer; the normal API playlist remains the source of truth. */
+const PREVIEW_SONGS = {
+    village: [
+        {
+            name: "Gori Tera Gaon Bada Pyara",
+            file: "/songs/village/Gori Tera Gaon Bada Pyara  K J Yesudas  Chitchor  Lyrical Video  Old Hindi Song.mp3"
+        }
+    ],
+    town: [
+        {
+            name: "Rockstar - Sheher Mein",
+            file: "/songs/town/a ROCKSTAR _ Sheher Mein Song With LYRICS  Ranbir Kapoor  Nargis Fakhri  A.R. Rahman.mp3"
+        }
+    ],
+    mountain: [
+        {
+            name: "Pahadon Mein",
+            file: "/songs/mountain/a Pahadon Mein (Lyrical)  Mera Dil Pahadon Mein Kho Gaya.mp3"
+        }
+    ],
+    river: [
+        {
+            name: "Lae Dooba",
+            file: "/songs/river/Lae Dooba 8K Video _ Aiyaary _ Sidharth Malhotra, Rakul Preet _ Sunidhi Chauhan _ Rochak Kohli.mp3"
+        }
+    ],
+    rain: [
+        {
+            name: "Barso Re",
+            file: "/songs/rain/A.R. Rahman - Barso Re (Lyric Video).mp3"
+        }
+    ],
+    forest: [
+        {
+            name: "Jungle Jungle Baat Chali Hai",
+            file: "/songs/forest/a The Jungle Book Hindi  Mowgli Story  Opening Song  Jungle Jungle Baat Chali Hai.mp3"
+        }
+    ]
+};
 function openRequestSong() {
     if (!document.body.classList.contains("player-open")) return;
 
@@ -1304,7 +1358,16 @@ function submitSongRequest() {
         return;
     }
 
-    const requests = JSON.parse(localStorage.getItem("roadtunesSongRequests") || "[]");
+    let requests = [];
+
+    try {
+        const storedRequests = JSON.parse(
+            localStorage.getItem("roadtunesSongRequests") || "[]"
+        );
+        requests = Array.isArray(storedRequests) ? storedRequests : [];
+    } catch (error) {
+        console.warn("RoadTunes request history reset:", error);
+    }
 
     requests.push({
         song,
@@ -1336,29 +1399,203 @@ document.addEventListener("keydown", (event) => {
 });
 
 async function loadPlaylists() {
+    if (playlistSyncInFlight) return false;
+
+    playlistSyncInFlight = true;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), PLAYLIST_FETCH_TIMEOUT_MS);
+
     try {
-        const response = await fetch("/api/playlists");
-        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-        playlistSongs = await response.json();
+        const response = await fetch("/api/playlists", {
+            cache: "no-store",
+            signal: controller.signal
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        playlistSongs = data && typeof data === "object" ? data : {};
+
         console.log("Playlists loaded:", playlistSongs);
         return true;
     } catch (error) {
-        console.error("Playlist loading error:", error);
-        playlistSongs = {};
+        // A failed or slow API must never interrupt the cached preview.
+        console.warn("Playlist loading deferred:", error);
         return false;
+    } finally {
+        clearTimeout(timeoutId);
+        playlistSyncInFlight = false;
     }
 }
 
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const randomIndex = Math.floor(Math.random() * (i + 1));
-        [array[i], array[randomIndex]] = [array[randomIndex], array[i]];
+function stopBackgroundPlaylistSync() {
+    if (backgroundSyncTimer) {
+        clearTimeout(backgroundSyncTimer);
+        backgroundSyncTimer = null;
     }
-    return array;
+}
+
+function scheduleBackgroundPlaylistSync(place, requestId, delay = PLAYLIST_RETRY_MS) {
+    stopBackgroundPlaylistSync();
+
+    backgroundSyncTimer = setTimeout(async () => {
+        backgroundSyncTimer = null;
+
+        // Ignore an old category request.
+        if (requestId !== playlistRequestId || currentPlace !== place) {
+            return;
+        }
+
+        // Once the normal playlist is live, there is nothing left to retry.
+        if (playlistSource === "online") {
+            return;
+        }
+
+        // Do not rely only on navigator.onLine: browser/network emulation can
+        // keep that value stale. A real API request is the source of truth.
+        const loaded = await loadPlaylists();
+
+        if (requestId !== playlistRequestId || currentPlace !== place) {
+            return;
+        }
+
+        if (loaded) {
+            applyOnlinePlaylist(place);
+        } else {
+            // Keep trying quietly until Render/API becomes available.
+            scheduleBackgroundPlaylistSync(place, requestId, PLAYLIST_RETRY_MS);
+        }
+    }, delay);
+}
+
+function applyOnlinePlaylist(place) {
+    if (currentPlace !== place) return;
+
+    const onlinePlaylist = Array.isArray(playlistSongs[place])
+        ? playlistSongs[place].filter(song => song && song.file)
+        : [];
+
+    if (!onlinePlaylist.length) {
+        // A valid response with no songs is not a reason to destroy the
+        // Keep the preview and try again later.
+        scheduleBackgroundPlaylistSync(place, playlistRequestId, PLAYLIST_RETRY_MS);
+        return;
+    }
+
+    const activeSong = currentPlaylist[currentSong] || null;
+    const currentSongFile = activeSong?.file || "";
+    const currentTime = Number.isFinite(player.currentTime) ? player.currentTime : 0;
+    const wasPlaying = !player.paused && !player.ended;
+
+    // Remove a duplicate of the currently playing song when it exists in the
+    // real playlist. If it doesn't exist there, preserve the preview anyway.
+    let preservedSong = activeSong;
+
+    if (currentSongFile) {
+        const matchingIndex = onlinePlaylist.findIndex(song => song.file === currentSongFile);
+
+        if (matchingIndex >= 0) {
+            preservedSong = onlinePlaylist.splice(matchingIndex, 1)[0];
+        }
+    }
+
+    if (isShuffleOn) {
+        shuffleArray(onlinePlaylist);
+    }
+
+    const mergedPlaylist = preservedSong
+        ? [preservedSong, ...onlinePlaylist]
+        : onlinePlaylist;
+
+    if (!mergedPlaylist.length) {
+        scheduleBackgroundPlaylistSync(place, playlistRequestId, PLAYLIST_RETRY_MS);
+        return;
+    }
+
+    // Critical transition rule:
+    // update only the playlist array. Never reload the audio element while the
+    // preview is playing. This makes the cached song the seamless bridge.
+    currentPlaylist = mergedPlaylist;
+    currentSong = 0;
+    playlistSource = "online";
+    stopBackgroundPlaylistSync();
+
+    if (!preservedSong || !player.src) {
+        loadSong();
+
+        if (wasPlaying) {
+            player.play()
+                .then(() => setPlayState(true))
+                .catch(() => setPlayState(false));
+        }
+        return;
+    }
+
+    const currentUrl = new URL(player.src, window.location.href).href;
+    const preservedUrl = new URL(preservedSong.file, window.location.href).href;
+
+    if (currentUrl === preservedUrl) {
+        // Keep the exact playback position and state. Nothing visually jumps.
+        if (wasPlaying && player.paused) {
+            player.play()
+                .then(() => setPlayState(true))
+                .catch(() => setPlayState(false));
+        }
+
+        if (Number.isFinite(currentTime)) {
+            try {
+                player.currentTime = currentTime;
+            } catch (_) {
+                // The media element may not expose currentTime yet.
+            }
+        }
+
+        return;
+    }
+
+    // Defensive path only: if a playable preview source is not the current
+    // source, use normal loading behavior rather than leaving a broken state.
+    loadSong();
+
+    if (wasPlaying) {
+        player.play()
+            .then(() => setPlayState(true))
+            .catch(() => setPlayState(false));
+    }
+}
+
+async function refreshCurrentPlaylist() {
+    if (!currentPlace || playlistSource === "online") {
+        return;
+    }
+
+    const requestId = playlistRequestId;
+    const place = currentPlace;
+
+    const loaded = await loadPlaylists();
+
+    if (requestId !== playlistRequestId || currentPlace !== place) {
+        return;
+    }
+
+    if (loaded) {
+        applyOnlinePlaylist(place);
+    } else {
+        scheduleBackgroundPlaylistSync(place, requestId, PLAYLIST_RETRY_MS);
+    }
 }
 
 async function choosePlaylist(place) {
     currentPlace = place;
+    playlistRequestId += 1;
+
+    const requestId = playlistRequestId;
+
+    playlistSource = "preview";
+    stopBackgroundPlaylistSync();
 
     const mood = moodData[place];
 
@@ -1383,47 +1620,81 @@ async function choosePlaylist(place) {
 
     const prettyPlace = place.charAt(0).toUpperCase() + place.slice(1);
     playerTitle.innerText = prettyPlace;
-    artwork.src = `${place}.png`;
-    miniArt.src = `${place}.png`;
+    setCategoryArtwork(place);
     setActivePlaylist(place);
 
+    /*
+     * Instant preview layer:
+     * Start with the category's pre-cached preview immediately.
+     * Never wait for Render/API before giving the user a song.
+     */
+    const preview = PREVIEW_SONGS[place] || [];
+
+    if (preview.length) {
+        currentPlaylist = [...preview];
+        currentSong = 0;
+        loadSong();
+
+        try {
+            await player.play();
+            setPlayState(true);
+        } catch (error) {
+            console.log("Preview autoplay blocked:", error);
+            setPlayState(false);
+        }
+    }
+
+    /*
+     * NORMAL ROADTUNES FLOW:
+     * Try the real playlist immediately. If Render is asleep/offline,
+     * quietly retry in the background until it succeeds.
+     */
     const loaded = await loadPlaylists();
-    if (!loaded) {
+
+    if (requestId !== playlistRequestId || currentPlace !== place) {
+        return;
+    }
+
+    if (loaded) {
+        applyOnlinePlaylist(place);
+    } else if (currentPlaylist.length) {
+        // Keep preview playing and retry until the real playlist becomes ready.
+        scheduleBackgroundPlaylistSync(place, requestId, PLAYLIST_RETRY_MS);
+    } else {
+        // Defensive only: no preview and no API.
         songTitle.innerText = "Could not load songs";
-        return;
-    }
-
-    currentPlaylist = [...(playlistSongs[place] || [])];
-    if (isShuffleOn) shuffleArray(currentPlaylist);
-    currentSong = 0;
-
-    if (currentPlaylist.length === 0) {
-        songTitle.innerText = "No songs in this playlist";
-        player.removeAttribute("src");
-        player.load();
-        updateMiniPlayer();
-        return;
-    }
-
-    loadSong();
-
-    try {
-        await player.play();
-        setPlayState(true);
-    } catch (error) {
-        console.log("Autoplay blocked:", error);
-        setPlayState(false);
+        scheduleBackgroundPlaylistSync(place, requestId, PLAYLIST_RETRY_MS);
     }
 
     if (window.innerWidth <= 600) {
-    setTimeout(() => {
-        musicPanel.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-    }, 150);
+        setTimeout(() => {
+            musicPanel.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }, 150);
+    }
 }
-}
+
+// Network events are helpful, but the background retry loop above is the
+// authoritative mechanism. This also covers environments where the browser
+// does not fire an online event reliably (for example DevTools emulation).
+window.addEventListener("online", () => {
+    if (currentPlace && playlistSource !== "online") {
+    }
+    refreshCurrentPlaylist();
+});
+
+window.addEventListener("offline", () => {
+    if (currentPlace && playlistSource !== "online") {
+    }
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        refreshCurrentPlaylist();
+    }
+});
 
 function setActivePlaylist(place) {
     document.querySelectorAll(".playlist").forEach(card => {
@@ -1431,10 +1702,34 @@ function setActivePlaylist(place) {
     });
 }
 
+function setCategoryArtwork(place) {
+    const safePlace = moodData[place] ? place : "village";
+    const imagePath = `${safePlace}.png`;
+
+    // Use the category artwork everywhere so the player and mini-player
+    // stay visually consistent, including offline/cache-first startup.
+    artwork.onerror = () => {
+        artwork.onerror = null;
+        artwork.src = "background.png";
+    };
+
+    miniArt.onerror = () => {
+        miniArt.onerror = null;
+        miniArt.src = "background.png";
+    };
+
+    artwork.src = imagePath;
+    miniArt.src = imagePath;
+}
+
 function loadSong() {
     if (!currentPlaylist.length) return;
 
     const song = currentPlaylist[currentSong];
+    if (!song || typeof song.file !== "string" || !song.file.trim()) {
+        return;
+    }
+
     player.src = song.file;
     player.load();
 
@@ -1517,7 +1812,7 @@ player.addEventListener("play", () => setPlayState(true));
 player.addEventListener("pause", () => setPlayState(false));
 
 function updateMiniPlayer() {
-    miniArt.src = `${currentPlace}.png`;
+    setCategoryArtwork(currentPlace);
 }
 
 function openAbout() {
@@ -1550,11 +1845,20 @@ function toggleTheme() {
 }
 
 function toggleMenu() {
-    document.getElementById("menuDrawer").classList.toggle("open");
+    const menu = document.getElementById("menuDrawer");
+    if (menu) menu.classList.toggle("open");
 }
 
 // Hint: only on portrait phones, once per page load.
 window.addEventListener("DOMContentLoaded", () => {
+
+    // Warm the six small category artworks without blocking the UI.
+    // The Service Worker still remains the primary offline source.
+    Object.keys(moodData).forEach(place => {
+        const image = new Image();
+        image.decoding = "async";
+        image.src = `${place}.png`;
+    });
 
     // Rotate-phone hint: only on portrait phones
     const hint = document.getElementById("rotateHint");
@@ -1574,6 +1878,15 @@ window.addEventListener("DOMContentLoaded", () => {
         hint.style.setProperty("display", "none", "important");
     }, 1000);
 });
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js")
+            .then(() => console.log("RoadTunes Service Worker registered"))
+            .catch((error) => console.error("Service Worker registration failed:", error));
+    });
+}
 </script>
 </body>
 </html>
