@@ -53,6 +53,262 @@ body::after {
     background: radial-gradient(circle at 50% 20%, rgba(255,255,255,.06), transparent 45%);
 }
 
+
+/* =========================================================
+   ROADTUNES V2 — SERVER WAKE-UP STARTUP MASK
+   Visual only: no preview song, no cached audio, no blocking of
+   the normal player once /api/playlists is live.
+   ========================================================= */
+body.startup-loading {
+    overflow: hidden;
+}
+
+#startupLoader {
+    --startup-progress: 0%;
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+    background:
+        linear-gradient(rgba(4,7,10,.48), rgba(4,7,10,.72)),
+        url("background.png") center / cover no-repeat fixed;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity .42s ease, visibility .42s ease;
+}
+
+#startupLoader.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.startup-glow {
+    position: absolute;
+    width: min(58vw, 560px);
+    height: min(58vw, 560px);
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--mood-soft), transparent 66%);
+    filter: blur(10px);
+    pointer-events: none;
+}
+
+.startup-card {
+    position: relative;
+    width: min(430px, 100%);
+    padding: 30px 28px 26px;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 26px;
+    background: rgba(16,20,25,.80);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    box-shadow:
+        0 30px 90px rgba(0,0,0,.48),
+        0 0 34px var(--mood-soft);
+    text-align: center;
+    overflow: hidden;
+}
+
+.startup-card::before {
+    content: "";
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    top: -135px;
+    right: -90px;
+    border-radius: 50%;
+    background: var(--mood-soft);
+    filter: blur(9px);
+    pointer-events: none;
+}
+
+.startup-brand {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.startup-brand .brand-mark {
+    font-size: 23px;
+}
+
+.startup-version {
+    padding: 4px 7px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 8px;
+    color: #fff;
+    background: rgba(255,255,255,.04);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .7px;
+}
+
+.startup-kicker {
+    position: relative;
+    margin-top: 22px;
+    color: var(--mood);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2.8px;
+    text-transform: uppercase;
+}
+
+.startup-title {
+    position: relative;
+    margin: 8px 0 5px;
+    color: #fff;
+    font-family: "Dancing Script", cursive;
+    font-size: 42px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.startup-message {
+    position: relative;
+    margin: 0 auto;
+    max-width: 320px;
+    color: #cbd1d7;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.startup-progress-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 86px 1fr;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    text-align: left;
+}
+
+.startup-ring {
+    width: 86px;
+    height: 86px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at center, rgba(13,17,21,.96) 57%, transparent 58%),
+        conic-gradient(var(--mood) var(--startup-progress), rgba(255,255,255,.10) 0);
+    box-shadow: 0 0 26px var(--mood-soft);
+    transition: background .25s ease;
+}
+
+.startup-percent {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -.3px;
+}
+
+.startup-meter-wrap {
+    min-width: 0;
+}
+
+.startup-meter-track {
+    width: 100%;
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.06);
+}
+
+.startup-meter-fill {
+    width: var(--startup-progress);
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--mood), #fff0bf);
+    box-shadow: 0 0 18px var(--mood-soft);
+    transition: width .25s ease;
+}
+
+.startup-status {
+    margin-top: 9px;
+    color: #9fa8b1;
+    font-size: 11px;
+}
+
+.startup-error {
+    position: relative;
+    display: none;
+    margin-top: 17px;
+    padding: 11px 12px;
+    border: 1px solid rgba(255,255,255,.11);
+    border-radius: 13px;
+    color: #cbd1d7;
+    background: rgba(255,255,255,.035);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.startup-error.show {
+    display: block;
+}
+
+.startup-error strong {
+    color: #fff;
+}
+
+.startup-retry {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--mood);
+    border-radius: 10px;
+    color: #111;
+    background: var(--mood);
+    font: 800 12px Inter, Arial, sans-serif;
+    cursor: pointer;
+}
+
+.startup-retry:hover {
+    filter: brightness(1.05);
+}
+
+.startup-footnote {
+    position: relative;
+    margin-top: 18px;
+    color: #727c86;
+    font-size: 10px;
+}
+
+body.startup-error-state #startupLoader {
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+}
+
+@media (max-width: 600px) {
+    #startupLoader {
+        padding: 14px;
+    }
+
+    .startup-card {
+        padding: 25px 20px 22px;
+        border-radius: 22px;
+    }
+
+    .startup-title {
+        font-size: 37px;
+    }
+
+    .startup-progress-row {
+        grid-template-columns: 76px 1fr;
+        gap: 13px;
+    }
+
+    .startup-ring {
+        width: 76px;
+        height: 76px;
+    }
+}
+
 .topbar {
     position: fixed;
     top: 0;
@@ -1009,7 +1265,46 @@ body.player-open .request-song-strip { display: grid; }
 </style>
 </head>
 
-<body>
+
+<body class="startup-loading">
+
+<div id="startupLoader" role="status" aria-live="polite" aria-label="RoadTunes startup">
+    <div class="startup-glow"></div>
+    <section class="startup-card">
+        <div class="startup-brand">
+            <span class="brand-mark">♫</span>
+            <span>RoadTunes</span>
+            <span class="startup-version">V2</span>
+        </div>
+
+        <div id="startupKicker" class="startup-kicker">SERVER WAKE-UP</div>
+        <h1 id="startupTitle" class="startup-title">Waking RoadTunes…</h1>
+        <p id="startupMessage" class="startup-message">
+            Connecting to the RoadTunes server and loading your playlists.
+        </p>
+
+        <div class="startup-progress-row">
+            <div id="startupRing" class="startup-ring" aria-hidden="true">
+                <div id="startupPercent" class="startup-percent">0%</div>
+            </div>
+            <div class="startup-meter-wrap">
+                <div class="startup-meter-track" aria-hidden="true">
+                    <div id="startupMeterFill" class="startup-meter-fill"></div>
+                </div>
+                <div id="startupStatus" class="startup-status">Connecting…</div>
+            </div>
+        </div>
+
+        <div id="startupError" class="startup-error">
+            <strong>RoadTunes is taking a little longer.</strong><br>
+            Render is still waking the server. We’ll keep retrying automatically.
+            <br>
+            <button id="startupRetry" class="startup-retry" type="button">Retry now</button>
+        </div>
+
+        <div class="startup-footnote">Relax. Focus. Enjoy.</div>
+    </section>
+</div>
 
 <header class="topbar">
     <div class="brand">
@@ -1104,6 +1399,8 @@ body.player-open .request-song-strip { display: grid; }
 
         <aside id="musicPanel" class="music-panel">
             <img id="artwork" class="music-art" src="background.png" alt="Playlist artwork">
+
+           
 
             <h2 id="playerTitle">Choose a place</h2>
             <p id="songTitle">Select a playlist to start listening</p>
@@ -1200,14 +1497,21 @@ let currentPlace = "";
 let isShuffleOn = true;
 let isRepeatOn = false;
 
-// Masking/transition state.
-// These variables only coordinate the cached preview with the normal API playlist.
+// Live streaming state.
+// The player uses only the playlist returned by /api/playlists.
 let playlistRequestId = 0;
-let playlistSource = "none";
-let backgroundSyncTimer = null;
 let playlistSyncInFlight = false;
-const PLAYLIST_RETRY_MS = 2500;
-const PLAYLIST_FETCH_TIMEOUT_MS = 7000;
+const PLAYLIST_FETCH_TIMEOUT_MS = 12000;
+const STARTUP_MIN_DISPLAY_MS = 700;
+const STARTUP_RETRY_MS = 2500;
+const ROADTUNES_PLACES = [
+    "village",
+    "town",
+    "mountain",
+    "river",
+    "rain",
+    "forest"
+];
 
 const player = document.getElementById("player");
 const playButton = document.getElementById("playButton");
@@ -1272,47 +1576,6 @@ const moodData = {
     }
 };
 
-/* Instant-start preview songs.
-   These are the same six MP3s pre-cached by sw.js.
-   They are only a masking/fallback layer; the normal API playlist remains the source of truth. */
-const PREVIEW_SONGS = {
-    village: [
-        {
-            name: "Gori Tera Gaon Bada Pyara",
-            file: "/songs/village/Gori Tera Gaon Bada Pyara  K J Yesudas  Chitchor  Lyrical Video  Old Hindi Song.mp3"
-        }
-    ],
-    town: [
-        {
-            name: "Rockstar - Sheher Mein",
-            file: "/songs/town/a ROCKSTAR _ Sheher Mein Song With LYRICS  Ranbir Kapoor  Nargis Fakhri  A.R. Rahman.mp3"
-        }
-    ],
-    mountain: [
-        {
-            name: "Pahadon Mein",
-            file: "/songs/mountain/a Pahadon Mein (Lyrical)  Mera Dil Pahadon Mein Kho Gaya.mp3"
-        }
-    ],
-    river: [
-        {
-            name: "Lae Dooba",
-            file: "/songs/river/Lae Dooba 8K Video _ Aiyaary _ Sidharth Malhotra, Rakul Preet _ Sunidhi Chauhan _ Rochak Kohli.mp3"
-        }
-    ],
-    rain: [
-        {
-            name: "Barso Re",
-            file: "/songs/rain/A.R. Rahman - Barso Re (Lyric Video).mp3"
-        }
-    ],
-    forest: [
-        {
-            name: "Jungle Jungle Baat Chali Hai",
-            file: "/songs/forest/a The Jungle Book Hindi  Mowgli Story  Opening Song  Jungle Jungle Baat Chali Hai.mp3"
-        }
-    ]
-};
 function openRequestSong() {
     if (!document.body.classList.contains("player-open")) return;
 
@@ -1356,7 +1619,16 @@ function submitSongRequest() {
         return;
     }
 
-    const requests = JSON.parse(localStorage.getItem("roadtunesSongRequests") || "[]");
+    let requests = [];
+
+    try {
+        const storedRequests = JSON.parse(
+            localStorage.getItem("roadtunesSongRequests") || "[]"
+        );
+        requests = Array.isArray(storedRequests) ? storedRequests : [];
+    } catch (error) {
+        console.warn("RoadTunes request history reset:", error);
+    }
 
     requests.push({
         song,
@@ -1387,18 +1659,91 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-async function loadPlaylists() {
+function setStartupProgress(value) {
+    const percent = Math.max(0, Math.min(100, Math.round(value)));
+    const loader = document.getElementById("startupLoader");
+    if (!loader) return;
+
+    loader.style.setProperty("--startup-progress", `${percent}%`);
+
+    const percentEl = document.getElementById("startupPercent");
+    if (percentEl) percentEl.innerText = `${percent}%`;
+}
+
+function setStartupState({ kicker, title, message, status, error = false }) {
+    const loader = document.getElementById("startupLoader");
+    if (!loader) return;
+
+    document.body.classList.toggle("startup-error-state", error);
+
+    const kickerEl = document.getElementById("startupKicker");
+    const titleEl = document.getElementById("startupTitle");
+    const messageEl = document.getElementById("startupMessage");
+    const statusEl = document.getElementById("startupStatus");
+    const errorEl = document.getElementById("startupError");
+
+    if (kickerEl) kickerEl.innerText = kicker;
+    if (titleEl) titleEl.innerText = title;
+    if (messageEl) messageEl.innerText = message;
+    if (statusEl) statusEl.innerText = status;
+    if (errorEl) errorEl.classList.toggle("show", error);
+}
+
+function showStartupLoader(mode = "wake") {
+    const loader = document.getElementById("startupLoader");
+    if (!loader) return;
+
+    loader.classList.remove("hidden");
+    document.body.classList.add("startup-loading");
+
+    if (mode === "reconnect") {
+        setStartupState({
+            kicker: "SERVER RECONNECT",
+            title: "Waking RoadTunes…",
+            message: "The server is taking a moment. We’re reconnecting before playback starts.",
+            status: "Reconnecting…"
+        });
+    } else {
+        setStartupState({
+            kicker: "SERVER WAKE-UP",
+            title: "Waking RoadTunes…",
+            message: "Connecting to the RoadTunes server and loading your playlists.",
+            status: "Connecting…"
+        });
+    }
+}
+
+function hideStartupLoader() {
+    const loader = document.getElementById("startupLoader");
+    if (!loader) return;
+
+    document.body.classList.remove("startup-loading", "startup-error-state");
+    loader.classList.add("hidden");
+}
+
+function isValidPlaylistPayload(data) {
+    return !!(
+        data &&
+        typeof data === "object" &&
+        ROADTUNES_PLACES.every(place => Array.isArray(data[place]))
+    );
+}
+
+async function loadPlaylists(timeoutMs = PLAYLIST_FETCH_TIMEOUT_MS) {
     if (playlistSyncInFlight) return false;
 
     playlistSyncInFlight = true;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), PLAYLIST_FETCH_TIMEOUT_MS);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-        const response = await fetch("/api/playlists", {
+        const response = await fetch(`/api/playlists?startup=${Date.now()}`, {
             cache: "no-store",
-            signal: controller.signal
+            signal: controller.signal,
+            headers: {
+                "Cache-Control": "no-cache"
+            }
         });
 
         if (!response.ok) {
@@ -1406,13 +1751,16 @@ async function loadPlaylists() {
         }
 
         const data = await response.json();
-        playlistSongs = data || {};
 
+        if (!isValidPlaylistPayload(data)) {
+            throw new Error("Invalid playlist response");
+        }
+
+        playlistSongs = data;
         console.log("Playlists loaded:", playlistSongs);
         return true;
     } catch (error) {
-        // Preview masking must never be interrupted by a failed/slow API.
-        console.warn("Playlist loading deferred:", error);
+        console.warn("RoadTunes playlist request failed:", error);
         return false;
     } finally {
         clearTimeout(timeoutId);
@@ -1420,169 +1768,123 @@ async function loadPlaylists() {
     }
 }
 
-function stopBackgroundPlaylistSync() {
-    if (backgroundSyncTimer) {
-        clearTimeout(backgroundSyncTimer);
-        backgroundSyncTimer = null;
-    }
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function scheduleBackgroundPlaylistSync(place, requestId, delay = PLAYLIST_RETRY_MS) {
-    stopBackgroundPlaylistSync();
+async function waitForRoadTunesServer({ initial = false } = {}) {
+    const startedAt = Date.now();
+    let progressTimer = null;
+    let retryNow = false;
+    let progress = initial ? 5 : 18;
 
-    backgroundSyncTimer = setTimeout(async () => {
-        backgroundSyncTimer = null;
+    showStartupLoader(initial ? "wake" : "reconnect");
+    setStartupProgress(progress);
 
-        // Ignore an old category request.
-        if (requestId !== playlistRequestId || currentPlace !== place) {
-            return;
-        }
+    const progressLoop = () => {
+        if (progress >= 98) return;
 
-        // Once the normal playlist is live, there is nothing left to retry.
-        if (playlistSource === "online") {
-            return;
-        }
-
-        // Do not rely only on navigator.onLine: browser/network emulation can
-        // keep that value stale. A real API request is the source of truth.
-        const loaded = await loadPlaylists();
-
-        if (requestId !== playlistRequestId || currentPlace !== place) {
-            return;
-        }
-
-        if (loaded) {
-            applyOnlinePlaylist(place);
+        const elapsed = Date.now() - startedAt;
+        if (elapsed < 6000) {
+            progress += 2;
+        } else if (elapsed < 15000) {
+            progress += 1;
         } else {
-            // Keep trying quietly until Render/API becomes available.
-            scheduleBackgroundPlaylistSync(place, requestId, PLAYLIST_RETRY_MS);
-        }
-    }, delay);
-}
-
-function applyOnlinePlaylist(place) {
-    if (currentPlace !== place) return;
-
-    const onlinePlaylist = [...(playlistSongs[place] || [])];
-
-    if (!onlinePlaylist.length) {
-        // A valid response with no songs is not a reason to destroy the
-        // masking playlist. Keep the preview and try again later.
-        scheduleBackgroundPlaylistSync(place, playlistRequestId, PLAYLIST_RETRY_MS);
-        return;
-    }
-
-    const activeSong = currentPlaylist[currentSong] || null;
-    const currentSongFile = activeSong?.file || "";
-    const currentTime = Number.isFinite(player.currentTime) ? player.currentTime : 0;
-    const wasPlaying = !player.paused && !player.ended;
-
-    // Remove a duplicate of the currently playing song when it exists in the
-    // real playlist. If it doesn't exist there, preserve the preview anyway.
-    let preservedSong = activeSong;
-
-    if (currentSongFile) {
-        const matchingIndex = onlinePlaylist.findIndex(song => song.file === currentSongFile);
-
-        if (matchingIndex >= 0) {
-            preservedSong = onlinePlaylist.splice(matchingIndex, 1)[0];
-        }
-    }
-
-    if (isShuffleOn) {
-        shuffleArray(onlinePlaylist);
-    }
-
-    const mergedPlaylist = preservedSong
-        ? [preservedSong, ...onlinePlaylist]
-        : onlinePlaylist;
-
-    if (!mergedPlaylist.length) {
-        scheduleBackgroundPlaylistSync(place, playlistRequestId, PLAYLIST_RETRY_MS);
-        return;
-    }
-
-    // Critical transition rule:
-    // update only the playlist array. Never reload the audio element while the
-    // preview is playing. This makes the cached song the seamless bridge.
-    currentPlaylist = mergedPlaylist;
-    currentSong = 0;
-    playlistSource = "online";
-    stopBackgroundPlaylistSync();
-
-    if (!preservedSong || !player.src) {
-        loadSong();
-
-        if (wasPlaying) {
-            player.play()
-                .then(() => setPlayState(true))
-                .catch(() => setPlayState(false));
-        }
-        return;
-    }
-
-    const currentUrl = new URL(player.src, window.location.href).href;
-    const preservedUrl = new URL(preservedSong.file, window.location.href).href;
-
-    if (currentUrl === preservedUrl) {
-        // Keep the exact playback position and state. Nothing visually jumps.
-        if (wasPlaying && player.paused) {
-            player.play()
-                .then(() => setPlayState(true))
-                .catch(() => setPlayState(false));
+            progress += 0.35;
         }
 
-        if (Number.isFinite(currentTime)) {
-            try {
-                player.currentTime = currentTime;
-            } catch (_) {
-                // The media element may not expose currentTime yet.
+        progress = Math.min(progress, 98);
+        setStartupProgress(progress);
+
+        const status = elapsed < 7000
+            ? "Waking server…"
+            : elapsed < 15000
+                ? "Loading playlist data…"
+                : "Still waiting for Render…";
+
+        const title = elapsed >= 15000
+            ? "Almost there…"
+            : "Waking RoadTunes…";
+
+        const message = elapsed >= 15000
+            ? "Render is taking longer than usual. RoadTunes will appear automatically when the server responds."
+            : "Connecting to the RoadTunes server and loading your playlists.";
+
+        const showError = elapsed >= 20000;
+
+        setStartupState({
+            kicker: showError ? "SERVER DELAY" : (initial ? "SERVER WAKE-UP" : "SERVER RECONNECT"),
+            title,
+            message,
+            status,
+            error: showError
+        });
+
+        progressTimer = setTimeout(progressLoop, 450);
+    };
+
+    progressTimer = setTimeout(progressLoop, 450);
+
+    const retryButton = document.getElementById("startupRetry");
+    if (retryButton) {
+        retryButton.onclick = () => {
+            retryNow = true;
+            retryButton.blur();
+            setStartupState({
+                kicker: initial ? "SERVER WAKE-UP" : "SERVER RECONNECT",
+                title: "Trying again…",
+                message: "Checking the RoadTunes server now.",
+                status: "Retrying…"
+            });
+        };
+    }
+
+    try {
+        while (true) {
+            const loaded = await loadPlaylists();
+
+            if (loaded) {
+                const elapsed = Date.now() - startedAt;
+                const remaining = Math.max(0, STARTUP_MIN_DISPLAY_MS - elapsed);
+                if (remaining) await delay(remaining);
+
+                clearTimeout(progressTimer);
+                setStartupProgress(100);
+                setStartupState({
+                    kicker: "ROADTUNES V2",
+                    title: "RoadTunes is live.",
+                    message: "Your playlists are ready. Choose a place, not a song.",
+                    status: "Ready"
+                });
+
+                await delay(360);
+                hideStartupLoader();
+                return true;
             }
+
+            const waitMs = retryNow ? 0 : STARTUP_RETRY_MS;
+            retryNow = false;
+            await delay(waitMs);
+
+            setStartupState({
+                kicker: initial ? "SERVER WAKE-UP" : "SERVER RECONNECT",
+                title: "Still waking…",
+                message: "Render hasn’t answered yet. We’ll keep checking automatically.",
+                status: "Waiting for server…",
+                error: Date.now() - startedAt >= 20000
+            });
         }
-
-        return;
-    }
-
-    // Defensive path only: if a playable preview source is not the current
-    // source, use normal loading behavior rather than leaving a broken state.
-    loadSong();
-
-    if (wasPlaying) {
-        player.play()
-            .then(() => setPlayState(true))
-            .catch(() => setPlayState(false));
-    }
-}
-
-async function refreshCurrentPlaylist() {
-    if (!currentPlace || playlistSource === "online") {
-        return;
-    }
-
-    const requestId = playlistRequestId;
-    const place = currentPlace;
-
-    const loaded = await loadPlaylists();
-
-    if (requestId !== playlistRequestId || currentPlace !== place) {
-        return;
-    }
-
-    if (loaded) {
-        applyOnlinePlaylist(place);
-    } else {
-        scheduleBackgroundPlaylistSync(place, requestId, PLAYLIST_RETRY_MS);
+    } finally {
+        clearTimeout(progressTimer);
     }
 }
 
 async function choosePlaylist(place) {
+    if (!moodData[place]) return;
+
     currentPlace = place;
     playlistRequestId += 1;
-
     const requestId = playlistRequestId;
-
-    playlistSource = "preview";
-    stopBackgroundPlaylistSync();
 
     const mood = moodData[place];
 
@@ -1607,51 +1909,48 @@ async function choosePlaylist(place) {
 
     const prettyPlace = place.charAt(0).toUpperCase() + place.slice(1);
     playerTitle.innerText = prettyPlace;
-    artwork.src = `${place}.png`;
-    miniArt.src = `${place}.png`;
+    setCategoryArtwork(place);
     setActivePlaylist(place);
 
-    /*
-     * MASKING LAYER:
-     * Start with the category's pre-cached preview immediately.
-     * We never wait for Render/API before giving the user a song.
-     */
-    const preview = PREVIEW_SONGS[place] || [];
+    // The server was warmed at startup, but Render can sleep again later.
+    let loaded = await loadPlaylists();
 
-    if (preview.length) {
-        currentPlaylist = [...preview];
-        currentSong = 0;
-        loadSong();
-
-        try {
-            await player.play();
-            setPlayState(true);
-        } catch (error) {
-            console.log("Preview autoplay blocked:", error);
-            setPlayState(false);
-        }
+    if (!loaded) {
+        await waitForRoadTunesServer({ initial: false });
+        loaded = true;
     }
-
-    /*
-     * NORMAL ROADTUNES FLOW:
-     * Try the real playlist immediately. If Render is asleep/offline,
-     * quietly retry in the background until it succeeds.
-     */
-    const loaded = await loadPlaylists();
 
     if (requestId !== playlistRequestId || currentPlace !== place) {
         return;
     }
 
-    if (loaded) {
-        applyOnlinePlaylist(place);
-    } else if (currentPlaylist.length) {
-        // Keep preview playing and retry until the real playlist becomes ready.
-        scheduleBackgroundPlaylistSync(place, requestId, PLAYLIST_RETRY_MS);
-    } else {
-        // Defensive only: no preview and no API.
-        songTitle.innerText = "Could not load songs";
-        scheduleBackgroundPlaylistSync(place, requestId, PLAYLIST_RETRY_MS);
+    const onlinePlaylist = Array.isArray(playlistSongs[place])
+        ? playlistSongs[place].filter(song => song && typeof song.file === "string" && song.file.trim())
+        : [];
+
+    if (!onlinePlaylist.length) {
+        songTitle.innerText = "No songs in this playlist";
+        player.removeAttribute("src");
+        player.load();
+        updateMiniPlayer();
+        return;
+    }
+
+    currentPlaylist = [...onlinePlaylist];
+
+    if (isShuffleOn) {
+        shuffleArray(currentPlaylist);
+    }
+
+    currentSong = 0;
+    loadSong();
+
+    try {
+        await player.play();
+        setPlayState(true);
+    } catch (error) {
+        setPlayState(false);
+        console.log("Autoplay blocked; press play to start:", error);
     }
 
     if (window.innerWidth <= 600) {
@@ -1664,29 +1963,40 @@ async function choosePlaylist(place) {
     }
 }
 
-// Network events are helpful, but the background retry loop above is the
-// authoritative mechanism. This also covers environments where the browser
-// does not fire an online event reliably (for example DevTools emulation).
-window.addEventListener("online", () => {
-    refreshCurrentPlaylist();
-});
-
-document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-        refreshCurrentPlaylist();
-    }
-});
-
 function setActivePlaylist(place) {
     document.querySelectorAll(".playlist").forEach(card => {
         card.classList.toggle("active", card.dataset.place === place);
     });
 }
 
+function setCategoryArtwork(place) {
+    const safePlace = moodData[place] ? place : "village";
+    const imagePath = `${safePlace}.png`;
+
+    // Use the category artwork everywhere so the player and mini-player
+    // stay visually consistent, including offline/cache-first startup.
+    artwork.onerror = () => {
+        artwork.onerror = null;
+        artwork.src = "background.png";
+    };
+
+    miniArt.onerror = () => {
+        miniArt.onerror = null;
+        miniArt.src = "background.png";
+    };
+
+    artwork.src = imagePath;
+    miniArt.src = imagePath;
+}
+
 function loadSong() {
     if (!currentPlaylist.length) return;
 
     const song = currentPlaylist[currentSong];
+    if (!song || typeof song.file !== "string" || !song.file.trim()) {
+        return;
+    }
+
     player.src = song.file;
     player.load();
 
@@ -1769,7 +2079,7 @@ player.addEventListener("play", () => setPlayState(true));
 player.addEventListener("pause", () => setPlayState(false));
 
 function updateMiniPlayer() {
-    miniArt.src = `${currentPlace}.png`;
+    setCategoryArtwork(currentPlace);
 }
 
 function openAbout() {
@@ -1802,61 +2112,82 @@ function toggleTheme() {
 }
 
 function toggleMenu() {
-    document.getElementById("menuDrawer").classList.toggle("open");
+    const menu = document.getElementById("menuDrawer");
+    if (menu) menu.classList.toggle("open");
 }
 
-// Hint: only on portrait phones, once per page load.
-window.addEventListener("DOMContentLoaded", () => {
-
-    // Rotate-phone hint: only on portrait phones
-    const hint = document.getElementById("rotateHint");
-
-    if (!hint) return;
-
-    const portraitPhone = window.matchMedia(
-        "(max-width: 600px) and (orientation: portrait)"
-    ).matches;
-
-    if (!portraitPhone) {
-        hint.style.display = "none";
-        return;
+// Startup: retire the old cache/service-worker layer, then wait for Render/API
+// before revealing RoadTunes V2. No preview song is used anywhere in this flow.
+async function retireLegacyRoadTunesCache() {
+    if (!("serviceWorker" in navigator) && !("caches" in window)) {
+        return false;
     }
 
-    setTimeout(() => {
-        hint.style.setProperty("display", "none", "important");
-    }, 1000);
-});
-</script>
-<script>
-// One-time cleanup of the old RoadTunes PWA cache/service worker.
-(async function cleanupLegacyRoadTunesCache() {
-    const key = "roadtunes-cache-cleanup-v1";
-
-    if (localStorage.getItem(key) === "done") return;
+    let changed = false;
 
     try {
         if ("serviceWorker" in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
-            await Promise.all(
-                registrations.map(registration => registration.unregister())
-            );
+            if (registrations.length) {
+                changed = true;
+                await Promise.all(
+                    registrations.map(registration => registration.unregister())
+                );
+            }
         }
+    } catch (error) {
+        console.warn("RoadTunes service-worker cleanup skipped:", error);
+    }
 
+    try {
         if ("caches" in window) {
             const keys = await caches.keys();
-            await Promise.all(
-                keys
-                    .filter(name => name.startsWith("roadtunes-"))
-                    .map(name => caches.delete(name))
-            );
+            const roadTunesKeys = keys.filter(key => key.toLowerCase().includes("roadtunes"));
+            if (roadTunesKeys.length) {
+                changed = true;
+                await Promise.all(roadTunesKeys.map(key => caches.delete(key)));
+            }
         }
-
-        localStorage.setItem(key, "done");
-        window.location.reload();
     } catch (error) {
-        console.warn("RoadTunes cache cleanup failed:", error);
+        console.warn("RoadTunes cache cleanup skipped:", error);
     }
-})();
+
+    return changed;
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+
+    // Warm the six small category artworks without blocking the UI.
+    Object.keys(moodData).forEach(place => {
+        const image = new Image();
+        image.decoding = "async";
+        image.src = `${place}.png`;
+    });
+
+    // Rotate-phone hint: only on portrait phones
+    const hint = document.getElementById("rotateHint");
+    if (hint) {
+        const portraitPhone = window.matchMedia(
+            "(max-width: 600px) and (orientation: portrait)"
+        ).matches;
+
+        if (!portraitPhone) {
+            hint.style.display = "none";
+        } else {
+            setTimeout(() => {
+                hint.style.setProperty("display", "none", "important");
+            }, 1000);
+        }
+    }
+
+    // Remove any previously installed RoadTunes service worker/cache left by
+    // the old preview system. The current V2 never registers a service worker.
+    await retireLegacyRoadTunesCache();
+
+    // Keep the loader visible until the real /api/playlists endpoint answers.
+    await waitForRoadTunesServer({ initial: true });
+});
+
 </script>
 </body>
 </html>
